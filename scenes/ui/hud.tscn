@@ -1,0 +1,23 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_hud"]
+
+[node name="HUD" type="CanvasLayer"]
+layer = 10
+script = ExtResource("1_hud")
+
+[node name="HealthContainer" type="VBoxContainer" parent="."]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 240.0
+offset_bottom = 70.0
+
+[node name="HealthLabel" type="Label" parent="HealthContainer"]
+text = "HP  100 / 100"
+theme_override_font_sizes/font_size = 14
+
+[node name="HealthBar" type="ProgressBar" parent="HealthContainer"]
+custom_minimum_size = Vector2(200, 18)
+max_value = 100.0
+value = 100.0
+show_percentage = false
