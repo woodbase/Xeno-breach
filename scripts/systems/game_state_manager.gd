@@ -2,7 +2,7 @@
 ##
 ## Access via the global [code]GameStateManager[/code] singleton.
 ## Connect to [signal state_changed] to react to transitions without polling.
-class_name GameStateManager
+
 extends Node
 
 enum State {
