@@ -64,8 +64,10 @@ func _spawn_single_enemy() -> void:
 		push_warning("WaveSpawner: no spawn_points assigned.")
 		_on_enemy_removed(false)
 		return
-	if enemy_scene == null:
-		push_warning("WaveSpawner: enemy_scene is not assigned.")
+
+	var selected_enemy_scene: PackedScene = _get_wave_enemy_scene(_current_wave)
+	if selected_enemy_scene == null:
+		push_warning("WaveSpawner: no enemy scene configured for current wave.")
 		_on_enemy_removed(false)
 		return
 
@@ -74,9 +76,9 @@ func _spawn_single_enemy() -> void:
 		push_warning("WaveSpawner: failed to find valid spawn point outside safety radius.")
 		_on_enemy_removed(false)
 		return
-	var enemy: EnemyBase = enemy_scene.instantiate() as EnemyBase
+	var enemy: EnemyBase = selected_enemy_scene.instantiate() as EnemyBase
 	if enemy == null:
-		push_warning("WaveSpawner: enemy_scene root is not an EnemyBase.")
+		push_warning("WaveSpawner: selected enemy scene root is not an EnemyBase.")
 		_on_enemy_removed(false)
 		return
 
@@ -122,6 +124,14 @@ func _get_wave_spawn_delay(index: int) -> float:
 	if index < wave_data_list.size():
 		return maxf(0.0, wave_data_list[index].spawn_delay)
 	return spawn_delay
+
+
+func _get_wave_enemy_scene(index: int) -> PackedScene:
+	if index < wave_data_list.size():
+		var data_enemy_scene: PackedScene = wave_data_list[index].enemy_scene
+		if data_enemy_scene != null:
+			return data_enemy_scene
+	return enemy_scene
 
 
 func _select_spawn_point() -> Node2D:
