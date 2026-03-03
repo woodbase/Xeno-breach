@@ -8,6 +8,11 @@ extends Node2D
 
 const SCORE_PER_KILL: int = 100
 const SCORE_WAVE_BONUS: int = 250
+const TELEMETRY_TARGET_CLEAR_TIME_MIN: float = 18.0
+const TELEMETRY_TARGET_CLEAR_TIME_MAX: float = 40.0
+const TELEMETRY_TARGET_KILLS_PER_MIN_MIN: float = 10.0
+const TELEMETRY_TARGET_KILLS_PER_MIN_MAX: float = 35.0
+const TELEMETRY_TARGET_DAMAGE_TAKEN_MAX: float = 30.0
 
 @export var debug_telemetry_enabled: bool = false
 
@@ -120,3 +125,16 @@ func _log_wave_telemetry(wave_number: int) -> void:
 		"[Telemetry] Wave %d | clear_time=%.2fs | damage_dealt=%.1f | damage_taken=%.1f | kills=%d | kills_per_min=%.2f"
 		% [wave_number, elapsed_sec, _wave_damage_dealt, _wave_damage_taken, _wave_kills, kills_per_minute]
 	)
+	var notes: Array[String] = []
+	if elapsed_sec < TELEMETRY_TARGET_CLEAR_TIME_MIN:
+		notes.append("too_fast")
+	elif elapsed_sec > TELEMETRY_TARGET_CLEAR_TIME_MAX:
+		notes.append("too_slow")
+	if kills_per_minute < TELEMETRY_TARGET_KILLS_PER_MIN_MIN:
+		notes.append("low_kpm")
+	elif kills_per_minute > TELEMETRY_TARGET_KILLS_PER_MIN_MAX:
+		notes.append("high_kpm")
+	if _wave_damage_taken > TELEMETRY_TARGET_DAMAGE_TAKEN_MAX:
+		notes.append("high_damage_taken")
+	if not notes.is_empty():
+		print("[Telemetry] Wave %d balance_hints=%s" % [wave_number, ",".join(notes)])
