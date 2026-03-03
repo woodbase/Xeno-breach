@@ -16,6 +16,7 @@ func _run_all() -> void:
 	test_spawn_point_respects_min_distance()
 	test_missing_spawn_point_returns_null()
 	test_wave_enemy_scene_override_uses_wave_data_scene()
+	test_wave_enemy_scene_missing_override_falls_back()
 
 
 func _assert(condition: bool, name: String) -> void:
@@ -83,3 +84,14 @@ func test_wave_enemy_scene_override_uses_wave_data_scene() -> void:
 
 	_assert(spawner._get_wave_enemy_scene(0) == variant_enemy_scene, "wave-specific enemy scene overrides fallback")
 	_assert(spawner._get_wave_enemy_scene(10) == fallback_enemy_scene, "fallback enemy scene is used outside wave_data_list")
+
+
+func test_wave_enemy_scene_missing_override_falls_back() -> void:
+	var spawner := WaveSpawner.new()
+	var fallback_enemy_scene: PackedScene = load("res://scenes/enemies/enemy_base.tscn")
+	spawner.enemy_scene = fallback_enemy_scene
+
+	var wave := _make_wave(3, 0.5)
+	spawner.wave_data_list = [wave]
+
+	_assert(spawner._get_wave_enemy_scene(0) == fallback_enemy_scene, "fallback enemy scene is used when wave enemy_scene is null")
