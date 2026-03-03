@@ -46,7 +46,7 @@ func _handle_movement(delta: float) -> void:
 		"move_left", "move_right", "move_up", "move_down"
 	)
 	if input_dir != Vector2.ZERO:
-		velocity = velocity.move_toward(input_dir.rotated(rotation) * move_speed, acceleration * delta)
+		velocity = velocity.move_toward(input_dir * move_speed, acceleration * delta)
 	else:
 		velocity = velocity.move_toward(Vector2.ZERO, friction * delta)
 

@@ -1,7 +1,7 @@
 ## Unit tests for PlayerController movement direction.
 ##
-## Validates that the movement input is rotated by the player's facing direction,
-## so the player always moves forward relative to where they are facing.
+## Validates that movement input stays world-aligned (WASD always maps to up,
+## down, left, right) regardless of the player's facing direction.
 ##
 ## Run standalone: create a scene with a Node root, attach this script.
 extends Node
@@ -16,9 +16,9 @@ func _ready() -> void:
 
 
 func _run_all() -> void:
-	test_forward_input_rotates_with_player()
-	test_forward_input_moves_in_facing_direction()
-	test_rotated_player_forward_input_matches_rotation()
+	test_forward_input_stays_up()
+	test_forward_input_ignores_player_rotation()
+	test_right_input_ignores_player_rotation()
 	test_zero_input_does_not_change_direction()
 
 
@@ -43,34 +43,31 @@ func _is_approx_equal(a: Vector2, b: Vector2, tolerance: float = 0.001) -> bool:
 # Tests
 # ---------------------------------------------------------------------------
 
-func test_forward_input_rotates_with_player() -> void:
-	# When the player faces right (rotation = 0), pressing "up" (Vector2(0, -1))
-	# rotated by 0 should still be (0, -1).
+func test_forward_input_stays_up() -> void:
+	# Pressing "up" should always produce an up vector.
 	var input_dir := Vector2(0.0, -1.0)  # move_up pressed
-	var rotation_angle := 0.0
-	var result := input_dir.rotated(rotation_angle)
+	var result := input_dir
 	_assert(_is_approx_equal(result, Vector2(0.0, -1.0)),
-		"no rotation: forward input unchanged")
+		"forward input stays up with no rotation")
 
 
-func test_forward_input_moves_in_facing_direction() -> void:
-	# When the player is rotated 90 degrees clockwise (PI/2), pressing "up"
-	# (Vector2(0, -1)) rotated by PI/2 should yield approximately (1, 0) — rightward.
+func test_forward_input_ignores_player_rotation() -> void:
+	# Even if the player is rotated 90 degrees clockwise (PI/2), pressing "up"
+	# should still move up relative to the world.
 	var input_dir := Vector2(0.0, -1.0)  # move_up pressed
 	var rotation_angle := PI / 2.0
-	var result := input_dir.rotated(rotation_angle)
-	_assert(_is_approx_equal(result, Vector2(1.0, 0.0)),
-		"90-degree rotation: forward input maps to right direction")
+	var result := input_dir  # rotation is ignored for movement
+	_assert(_is_approx_equal(result, Vector2(0.0, -1.0)),
+		"forward input stays up when player is rotated 90 degrees")
 
 
-func test_rotated_player_forward_input_matches_rotation() -> void:
-	# When the player is rotated 180 degrees (PI), pressing "up"
-	# (Vector2(0, -1)) rotated by PI should yield approximately (0, 1) — downward.
-	var input_dir := Vector2(0.0, -1.0)  # move_up pressed
+func test_right_input_ignores_player_rotation() -> void:
+	# Pressing "right" should move right even if the player faces downward.
+	var input_dir := Vector2(1.0, 0.0)  # move_right pressed
 	var rotation_angle := PI
-	var result := input_dir.rotated(rotation_angle)
-	_assert(_is_approx_equal(result, Vector2(0.0, 1.0)),
-		"180-degree rotation: forward input maps to downward direction")
+	var result := input_dir  # rotation is ignored for movement
+	_assert(_is_approx_equal(result, Vector2(1.0, 0.0)),
+		"right input stays right when player is rotated 180 degrees")
 
 
 func test_zero_input_does_not_change_direction() -> void:
