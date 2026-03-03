@@ -1,9 +1,11 @@
-[gd_resource type="Resource" script_class="WaveData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="WaveData" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/data/wave_data.gd" id="1_wave"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/enemy_brute.tscn" id="2_enemy"]
 
 [resource]
 script = ExtResource("1_wave")
-wave_name = "Final Swarm"
-enemy_count = 16
-spawn_delay = 0.12
+wave_name = "Final Bulwark"
+enemy_count = 14
+spawn_delay = 0.28
+enemy_scene = ExtResource("2_enemy")
