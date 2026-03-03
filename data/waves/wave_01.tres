@@ -4,6 +4,6 @@
 
 [resource]
 script = ExtResource("1_wave")
-wave_name = "Scout Breach"
-enemy_count = 5
-spawn_delay = 0.4
+wave_name = "Staggered Warmup"
+enemy_count = 4
+spawn_delay = 0.75
