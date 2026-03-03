@@ -9,3 +9,4 @@ extends Resource
 @export var spawn_delay: float = 0.3
 
 @export var enemy_scene: PackedScene
+@export var enemy_scene_pool: Array[PackedScene] = []

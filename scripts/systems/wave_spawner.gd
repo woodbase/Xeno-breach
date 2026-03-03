@@ -128,10 +128,26 @@ func _get_wave_spawn_delay(index: int) -> float:
 
 func _get_wave_enemy_scene(index: int) -> PackedScene:
 	if index < wave_data_list.size():
-		var data_enemy_scene: PackedScene = wave_data_list[index].enemy_scene
+		var wave_data: WaveData = wave_data_list[index]
+		var pool_scene: PackedScene = _pick_enemy_scene_from_pool(wave_data)
+		if pool_scene != null:
+			return pool_scene
+		var data_enemy_scene: PackedScene = wave_data.enemy_scene
 		if data_enemy_scene != null:
 			return data_enemy_scene
 	return enemy_scene
+
+
+func _pick_enemy_scene_from_pool(wave_data: WaveData) -> PackedScene:
+	if wave_data.enemy_scene_pool.is_empty():
+		return null
+	var valid_scenes: Array[PackedScene] = []
+	for scene: PackedScene in wave_data.enemy_scene_pool:
+		if scene != null:
+			valid_scenes.append(scene)
+	if valid_scenes.is_empty():
+		return null
+	return valid_scenes[randi() % valid_scenes.size()]
 
 
 func _select_spawn_point() -> Node2D:
