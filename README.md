@@ -67,8 +67,8 @@ See [`docs/architecture.md`](docs/architecture.md) for the full system design.
 ## Getting Started
 
 1. Open the project in **Godot 4.2+**
-2. Run `scenes/levels/test_level.tscn`
-3. Survive five waves of enemies
+2. Run the project (starts at `scenes/ui/main_menu.tscn`)
+3. Start a run and survive five waves of enemies
 
 ---
 

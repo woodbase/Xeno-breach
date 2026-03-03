@@ -13,6 +13,8 @@ const TELEMETRY_TARGET_CLEAR_TIME_MAX: float = 40.0
 const TELEMETRY_TARGET_KILLS_PER_MIN_MIN: float = 10.0
 const TELEMETRY_TARGET_KILLS_PER_MIN_MAX: float = 35.0
 const TELEMETRY_TARGET_DAMAGE_TAKEN_MAX: float = 30.0
+const LEVEL_SCENE_PATH: String = "res://scenes/levels/test_level.tscn"
+const MAIN_MENU_SCENE_PATH: String = "res://scenes/ui/main_menu.tscn"
 
 @export var debug_telemetry_enabled: bool = false
 
@@ -22,6 +24,7 @@ var _wave_started_at_ms: int = 0
 var _wave_damage_taken: float = 0.0
 var _wave_damage_dealt: float = 0.0
 var _wave_kills: int = 0
+var _run_finished: bool = false
 
 
 func _ready() -> void:
@@ -57,6 +60,7 @@ func _ready() -> void:
 
 
 func _on_player_died() -> void:
+	_run_finished = true
 	GameStateManager.change_state(GameStateManager.State.GAME_OVER)
 	hud.show_final_results(_score, _waves_survived)
 	print("GAME OVER")
@@ -80,12 +84,23 @@ func _on_wave_completed(wave_number: int) -> void:
 
 
 func _on_all_waves_completed() -> void:
+	_run_finished = true
 	GameStateManager.change_state(GameStateManager.State.VICTORY)
 	hud.show_final_results(_score, _waves_survived)
 	print("VICTORY — all waves cleared!")
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _run_finished:
+		if event.is_action_pressed("fire") or event.is_action_pressed("ui_accept"):
+			_restart_run()
+			get_viewport().set_input_as_handled()
+			return
+		if event.is_action_pressed("pause"):
+			_return_to_main_menu()
+			get_viewport().set_input_as_handled()
+			return
+
 	if event.is_action_pressed("pause"):
 		_toggle_pause()
 		get_viewport().set_input_as_handled()
@@ -138,3 +153,14 @@ func _log_wave_telemetry(wave_number: int) -> void:
 		notes.append("high_damage_taken")
 	if not notes.is_empty():
 		print("[Telemetry] Wave %d balance_hints=%s" % [wave_number, ",".join(notes)])
+
+
+func _restart_run() -> void:
+	get_tree().paused = false
+	get_tree().change_scene_to_file(LEVEL_SCENE_PATH)
+
+
+func _return_to_main_menu() -> void:
+	get_tree().paused = false
+	GameStateManager.change_state(GameStateManager.State.MAIN_MENU)
+	get_tree().change_scene_to_file(MAIN_MENU_SCENE_PATH)

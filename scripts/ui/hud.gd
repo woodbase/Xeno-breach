@@ -37,5 +37,5 @@ func set_score(score: int) -> void:
 
 
 func show_final_results(score: int, waves_survived: int) -> void:
-	result_label.text = "Run complete\nScore: %d\nWaves survived: %d" % [score, waves_survived]
+	result_label.text = "Run complete\nScore: %d\nWaves survived: %d\n\nLMB/Enter: Retry  •  ESC: Menu" % [score, waves_survived]
 	result_label.visible = true
