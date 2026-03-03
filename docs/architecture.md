@@ -93,7 +93,7 @@ without touching script logic.
 | 2 — Enemies | 2 | Enemy CharacterBody2D |
 | 3 — World | 4 | Static geometry |
 | 4 — Player Projectiles | 8 | Projectile Area2D |
-| 5 — Enemy Projectiles | 16 | (reserved) |
+| 5 — Enemy Projectiles | 16 | EnemyProjectile Area2D |
 
 Player projectile `collision_mask = 6` → hits enemies (2) + world (4).
 
