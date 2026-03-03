@@ -15,12 +15,17 @@ signal wave_completed(wave_number: int)
 
 ## Emitted after the final wave is cleared.
 signal all_waves_completed
+signal enemy_spawned(enemy: EnemyBase)
+signal enemy_killed
 
 @export var enemy_scene: PackedScene
 @export var total_waves: int = 3
 @export var enemies_per_wave: int = 5
 @export var spawn_delay: float = 0.3
 @export var between_wave_delay: float = 2.0
+@export var wave_data_list: Array[WaveData] = []
+@export var min_spawn_distance_from_player: float = 220.0
+@export var spawn_retry_count: int = 8
 
 ## Set by the owning level. Also accepted via [method start].
 var spawn_points: Array[Node2D] = []
@@ -39,33 +44,40 @@ func start(player: Node2D) -> void:
 
 
 func _start_wave(index: int) -> void:
-	if index >= total_waves:
+	if index >= _get_total_waves():
 		all_waves_completed.emit()
 		return
 
 	wave_started.emit(index + 1)
-	_active_enemies = enemies_per_wave
+	_active_enemies = _get_wave_enemy_count(index)
 	_spawn_wave_enemies()
 
 
 func _spawn_wave_enemies() -> void:
 	for i: int in _active_enemies:
-		await get_tree().create_timer(spawn_delay * i).timeout
+		await get_tree().create_timer(_get_wave_spawn_delay(_current_wave) * i).timeout
 		_spawn_single_enemy()
 
 
 func _spawn_single_enemy() -> void:
 	if spawn_points.is_empty():
 		push_warning("WaveSpawner: no spawn_points assigned.")
+		_on_enemy_removed(false)
 		return
 	if enemy_scene == null:
 		push_warning("WaveSpawner: enemy_scene is not assigned.")
+		_on_enemy_removed(false)
 		return
 
-	var point: Node2D = spawn_points[randi() % spawn_points.size()]
+	var point: Node2D = _select_spawn_point()
+	if point == null:
+		push_warning("WaveSpawner: failed to find valid spawn point outside safety radius.")
+		_on_enemy_removed(false)
+		return
 	var enemy: EnemyBase = enemy_scene.instantiate() as EnemyBase
 	if enemy == null:
 		push_warning("WaveSpawner: enemy_scene root is not an EnemyBase.")
+		_on_enemy_removed(false)
 		return
 
 	enemy.global_position = point.global_position
@@ -73,12 +85,57 @@ func _spawn_single_enemy() -> void:
 		enemy.set_target(_player)
 	enemy.died.connect(_on_enemy_died)
 	get_parent().add_child(enemy)
+	enemy_spawned.emit(enemy)
 
 
 func _on_enemy_died() -> void:
+	_on_enemy_removed(true)
+
+
+func _on_enemy_removed(killed: bool) -> void:
 	_active_enemies -= 1
+	if killed:
+		enemy_killed.emit()
 	if _active_enemies <= 0:
 		wave_completed.emit(_current_wave + 1)
 		_current_wave += 1
 		await get_tree().create_timer(between_wave_delay).timeout
 		_start_wave(_current_wave)
+
+
+func _get_total_waves() -> int:
+	if not wave_data_list.is_empty():
+		return wave_data_list.size()
+	return total_waves
+
+
+func _get_wave_enemy_count(index: int) -> int:
+	if index < wave_data_list.size():
+		return maxi(0, wave_data_list[index].enemy_count)
+	if not wave_data_list.is_empty():
+		push_warning("WaveSpawner: missing WaveData for index %d; defaulting enemy_count=0." % index)
+		return 0
+	return enemies_per_wave
+
+
+func _get_wave_spawn_delay(index: int) -> float:
+	if index < wave_data_list.size():
+		return maxf(0.0, wave_data_list[index].spawn_delay)
+	return spawn_delay
+
+
+func _select_spawn_point() -> Node2D:
+	if spawn_points.is_empty():
+		return null
+	if _player == null:
+		return spawn_points[randi() % spawn_points.size()]
+
+	for _attempt: int in spawn_retry_count:
+		var candidate: Node2D = spawn_points[randi() % spawn_points.size()]
+		if candidate.global_position.distance_to(_player.global_position) >= min_spawn_distance_from_player:
+			return candidate
+
+	for candidate: Node2D in spawn_points:
+		if candidate.global_position.distance_to(_player.global_position) >= min_spawn_distance_from_player:
+			return candidate
+	return null
