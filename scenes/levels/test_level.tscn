@@ -1,10 +1,13 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/test_level.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="3_hud"]
 [ext_resource type="Script" path="res://scripts/systems/wave_spawner.gd" id="4_spawner"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/enemy_base.tscn" id="5_enemy"]
+[ext_resource type="Resource" path="res://data/waves/wave_01.tres" id="6_wave_01"]
+[ext_resource type="Resource" path="res://data/waves/wave_02.tres" id="7_wave_02"]
+[ext_resource type="Resource" path="res://data/waves/wave_03.tres" id="8_wave_03"]
 
 [node name="TestLevel" type="Node2D"]
 script = ExtResource("1_level")
@@ -44,5 +47,8 @@ total_waves = 3
 enemies_per_wave = 5
 spawn_delay = 0.3
 between_wave_delay = 2.0
+wave_data_list = Array[WaveData]([ExtResource("6_wave_01"), ExtResource("7_wave_02"), ExtResource("8_wave_03")])
+min_spawn_distance_from_player = 250.0
+spawn_retry_count = 10
 
 [node name="HUD" type="CanvasLayer" parent="." instance=ExtResource("3_hud")]

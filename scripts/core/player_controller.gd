@@ -30,6 +30,7 @@ var _fire_cooldown: float = 0.0
 func _ready() -> void:
 	health_component.damaged.connect(func(amount: float) -> void: damaged.emit(amount))
 	health_component.died.connect(_on_health_died)
+	health_component.invulnerability_changed.connect(_on_invulnerability_changed)
 	if not weapon_path.is_empty():
 		_weapon = get_node_or_null(weapon_path) as BaseWeapon
 
@@ -83,3 +84,7 @@ func set_weapon(weapon: BaseWeapon) -> void:
 func _on_health_died() -> void:
 	set_physics_process(false)
 	died.emit()
+
+
+func _on_invulnerability_changed(active: bool) -> void:
+	modulate = Color(1.0, 1.0, 1.0, 0.45) if active else Color(1.0, 1.0, 1.0, 1.0)

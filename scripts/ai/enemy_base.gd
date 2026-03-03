@@ -10,12 +10,15 @@ enum State { IDLE, CHASE, ATTACK }
 
 ## Emitted when the enemy's health reaches zero, just before [method queue_free].
 signal died
+signal state_changed(new_state: State, old_state: State)
 
 @export var move_speed: float = 120.0
 @export var detection_range: float = 300.0
 @export var attack_range: float = 50.0
 @export var damage: float = 10.0
 @export var attack_cooldown: float = 1.0
+@export var projectile_scene: PackedScene
+@export var projectile_speed: float = 350.0
 
 @onready var health_component: HealthComponent = $HealthComponent
 
@@ -35,16 +38,19 @@ func _physics_process(delta: float) -> void:
 
 
 func _update_state() -> void:
+	var old_state: State = _current_state
 	if _target == null:
 		_current_state = State.IDLE
-		return
-	var dist: float = global_position.distance_to(_target.global_position)
-	if dist <= attack_range:
-		_current_state = State.ATTACK
-	elif dist <= detection_range:
-		_current_state = State.CHASE
 	else:
-		_current_state = State.IDLE
+		var dist: float = global_position.distance_to(_target.global_position)
+		if dist <= attack_range:
+			_current_state = State.ATTACK
+		elif dist <= detection_range:
+			_current_state = State.CHASE
+		else:
+			_current_state = State.IDLE
+	if old_state != _current_state:
+		state_changed.emit(_current_state, old_state)
 
 
 func _process_state(delta: float) -> void:
@@ -71,9 +77,28 @@ func set_target(target: Node2D) -> void:
 func _do_attack() -> void:
 	if _target == null:
 		return
+	if projectile_scene != null:
+		_fire_projectile()
+		return
 	var health: HealthComponent = _target.get_node_or_null("HealthComponent") as HealthComponent
 	if health != null:
 		health.take_damage(damage)
+
+
+func _fire_projectile() -> void:
+	var projectile: Projectile = projectile_scene.instantiate() as Projectile
+	if projectile == null:
+		push_warning("EnemyBase: projectile_scene root is not a Projectile.")
+		return
+	var direction: Vector2 = (_target.global_position - global_position).normalized()
+	projectile.global_position = global_position
+	projectile.direction = direction
+	projectile.speed = projectile_speed
+	projectile.damage = damage
+	projectile.source_body = self
+	var level: Node = get_tree().current_scene
+	if level != null:
+		level.add_child(projectile)
 
 
 func _on_health_died() -> void:

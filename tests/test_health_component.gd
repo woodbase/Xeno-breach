@@ -30,6 +30,7 @@ func _run_all() -> void:
 	test_get_health_percent_half()
 	test_is_alive_true_when_healthy()
 	test_is_alive_false_after_death()
+	test_invulnerability_blocks_rapid_followup_damage()
 
 
 # ---------------------------------------------------------------------------
@@ -143,3 +144,11 @@ func test_is_alive_false_after_death() -> void:
 	var hc := _make_hc(100.0)
 	hc.take_damage(100.0)
 	_assert(not hc.is_alive(), "is_alive returns false when health == 0")
+
+
+func test_invulnerability_blocks_rapid_followup_damage() -> void:
+	var hc := _make_hc(100.0)
+	hc.invulnerability_duration = 0.5
+	hc.take_damage(10.0)
+	hc.take_damage(10.0)
+	_assert(hc.current_health == 90.0, "i-frames block immediate second hit")

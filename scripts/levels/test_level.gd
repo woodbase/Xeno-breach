@@ -6,9 +6,22 @@ extends Node2D
 @onready var wave_spawner: WaveSpawner = $WaveSpawner
 @onready var spawn_points_container: Node2D = $SpawnPoints
 
+const SCORE_PER_KILL: int = 100
+const SCORE_WAVE_BONUS: int = 250
+
+@export var debug_telemetry_enabled: bool = false
+
+var _score: int = 0
+var _waves_survived: int = 0
+var _wave_started_at_ms: int = 0
+var _wave_damage_taken: float = 0.0
+var _wave_damage_dealt: float = 0.0
+var _wave_kills: int = 0
+
 
 func _ready() -> void:
 	GameStateManager.change_state(GameStateManager.State.PLAYING)
+	process_mode = Node.PROCESS_MODE_ALWAYS
 
 	# Collect spawn points from scene tree
 	var points: Array[Node2D] = []
@@ -23,11 +36,16 @@ func _ready() -> void:
 
 	# Connect player death
 	player.died.connect(_on_player_died)
+	player.damaged.connect(_on_player_damaged)
 
 	# Connect wave events
 	wave_spawner.wave_started.connect(_on_wave_started)
 	wave_spawner.wave_completed.connect(_on_wave_completed)
 	wave_spawner.all_waves_completed.connect(_on_all_waves_completed)
+	wave_spawner.enemy_killed.connect(_on_enemy_killed)
+	wave_spawner.enemy_spawned.connect(_on_enemy_spawned)
+
+	hud.set_score(_score)
 
 	# Begin
 	wave_spawner.start(player)
@@ -35,17 +53,70 @@ func _ready() -> void:
 
 func _on_player_died() -> void:
 	GameStateManager.change_state(GameStateManager.State.GAME_OVER)
+	hud.show_final_results(_score, _waves_survived)
 	print("GAME OVER")
 
 
 func _on_wave_started(wave_number: int) -> void:
+	_wave_started_at_ms = Time.get_ticks_msec()
+	_wave_damage_taken = 0.0
+	_wave_damage_dealt = 0.0
+	_wave_kills = 0
+	hud.set_wave(wave_number)
 	print("Wave %d started!" % wave_number)
 
 
 func _on_wave_completed(wave_number: int) -> void:
+	_waves_survived = wave_number
+	_score += SCORE_WAVE_BONUS
+	hud.set_score(_score)
+	_log_wave_telemetry(wave_number)
 	print("Wave %d cleared!" % wave_number)
 
 
 func _on_all_waves_completed() -> void:
 	GameStateManager.change_state(GameStateManager.State.VICTORY)
+	hud.show_final_results(_score, _waves_survived)
 	print("VICTORY — all waves cleared!")
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("pause"):
+		_toggle_pause()
+		get_viewport().set_input_as_handled()
+
+
+func _toggle_pause() -> void:
+	if get_tree().paused:
+		get_tree().paused = false
+		GameStateManager.change_state(GameStateManager.State.PLAYING)
+	else:
+		get_tree().paused = true
+		GameStateManager.change_state(GameStateManager.State.PAUSED)
+
+
+func _on_enemy_killed() -> void:
+	_wave_kills += 1
+	_score += SCORE_PER_KILL
+	hud.set_score(_score)
+
+
+func _on_enemy_spawned(enemy: EnemyBase) -> void:
+	var health: HealthComponent = enemy.get_node_or_null("HealthComponent") as HealthComponent
+	if health != null:
+		health.damaged.connect(func(amount: float) -> void: _wave_damage_dealt += amount)
+
+
+func _on_player_damaged(amount: float) -> void:
+	_wave_damage_taken += amount
+
+
+func _log_wave_telemetry(wave_number: int) -> void:
+	if not debug_telemetry_enabled:
+		return
+	var elapsed_sec: float = maxf(0.001, float(Time.get_ticks_msec() - _wave_started_at_ms) / 1000.0)
+	var kills_per_minute: float = float(_wave_kills) * 60.0 / elapsed_sec
+	print(
+		"[Telemetry] Wave %d | clear_time=%.2fs | damage_dealt=%.1f | damage_taken=%.1f | kills=%d | kills_per_min=%.2f"
+		% [wave_number, elapsed_sec, _wave_damage_dealt, _wave_damage_taken, _wave_kills, kills_per_minute]
+	)
