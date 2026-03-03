@@ -5,5 +5,5 @@
 [resource]
 script = ExtResource("1_wave")
 wave_name = "Flank Pressure"
-enemy_count = 8
-spawn_delay = 0.42
+enemy_count = 7
+spawn_delay = 0.45

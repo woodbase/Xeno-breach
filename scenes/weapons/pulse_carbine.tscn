@@ -5,7 +5,7 @@
 
 [node name="PulseCarbine" type="Node2D"]
 script = ExtResource("1_weapon")
-fire_rate = 0.11
-damage = 8.0
+fire_rate = 0.1
+damage = 7.0
 muzzle_offset = Vector2(30, 0)
 projectile_scene = ExtResource("2_proj")
