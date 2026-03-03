@@ -4,6 +4,6 @@
 
 [resource]
 script = ExtResource("1_wave")
-wave_name = "Overrun"
-enemy_count = 9
-spawn_delay = 0.22
+wave_name = "Rush Window"
+enemy_count = 10
+spawn_delay = 0.2

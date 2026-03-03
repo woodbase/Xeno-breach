@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/core/player_controller.gd" id="1_player"]
 [ext_resource type="Script" path="res://scripts/core/health_component.gd" id="2_health"]
-[ext_resource type="PackedScene" path="res://scenes/weapons/base_weapon.tscn" id="3_weapon"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/pulse_carbine.tscn" id="3_weapon"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_1"]
 radius = 14.0
@@ -15,7 +15,7 @@ script = ExtResource("1_player")
 move_speed = 300.0
 acceleration = 1500.0
 friction = 1200.0
-weapon_path = NodePath("WeaponMount/BasicBlaster")
+weapon_path = NodePath("WeaponMount/PulseCarbine")
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource("2_health")
@@ -24,7 +24,7 @@ invulnerability_duration = 0.5
 
 [node name="WeaponMount" type="Node2D" parent="."]
 
-[node name="BasicBlaster" type="Node2D" parent="WeaponMount" instance=ExtResource("3_weapon")]
+[node name="PulseCarbine" type="Node2D" parent="WeaponMount" instance=ExtResource("3_weapon")]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CapsuleShape2D_1")
