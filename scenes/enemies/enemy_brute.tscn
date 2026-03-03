@@ -1,0 +1,32 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/ai/enemy_base.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://scripts/core/health_component.gd" id="2_health"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/enemy_projectile.tscn" id="3_enemy_projectile"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_1"]
+radius = 20.0
+height = 34.0
+
+[node name="EnemyBrute" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 6
+script = ExtResource("1_enemy")
+move_speed = 90.0
+detection_range = 340.0
+attack_range = 290.0
+damage = 14.0
+attack_cooldown = 1.35
+projectile_scene = ExtResource("3_enemy_projectile")
+projectile_speed = 300.0
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("2_health")
+max_health = 80.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_1")
+
+[node name="Body" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-18, -18, 20, -18, 24, 0, 20, 18, -18, 18, -24, 0)
+color = Color(0.55, 0.2, 0.95, 1)
