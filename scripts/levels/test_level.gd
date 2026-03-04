@@ -35,7 +35,7 @@ var _ambient_player: AudioStreamPlayer = null
 
 func _ready() -> void:
 	GameStateManager.change_state(GameStateManager.State.PLAYING)
-	process_mode = Node.PROCESS_MODE_ALWAYS
+	process_mode = PROCESS_MODE_ALWAYS
 	_start_ambient_bed()
 
 	# Collect spawn points from scene tree
@@ -224,7 +224,8 @@ func _start_ambient_bed() -> void:
 	if _ambient_player == null:
 		_ambient_player = AudioStreamPlayer.new()
 		_ambient_player.name = "AmbientBed"
-		_ambient_player.process_mode = Node.PROCESS_MODE_ALWAYS
+		# Godot 4.x pause handling uses process_mode/PROCESS_MODE_* constants.
+		_ambient_player.process_mode = PROCESS_MODE_ALWAYS
 		_ambient_player.stream = AudioLibrary.get_ambient_loop()
 		_ambient_player.volume_db = -12.0
 		_ambient_player.bus = AudioManager.BUS_AMBIENCE
