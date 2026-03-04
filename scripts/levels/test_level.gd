@@ -14,6 +14,14 @@ const TELEMETRY_TARGET_KILLS_PER_MIN_MIN: float = 10.0
 const TELEMETRY_TARGET_KILLS_PER_MIN_MAX: float = 35.0
 const TELEMETRY_TARGET_DAMAGE_TAKEN_MAX: float = 30.0
 const MAIN_MENU_SCENE_PATH: String = "res://scenes/ui/main_menu.tscn"
+const PLAYER_SCENE: String = "res://scenes/player/player.tscn"
+
+## Spawn offsets for co-op players 2–4 relative to player 1.
+const COOP_SPAWN_OFFSETS: PackedVector2Array = [
+	Vector2(80.0, 0.0),
+	Vector2(-80.0, 0.0),
+	Vector2(0.0, 80.0),
+]
 
 @export var debug_telemetry_enabled: bool = false
 @export_file("*.tscn") var next_level_scene_path: String = ""
@@ -28,6 +36,7 @@ var _run_finished: bool = false
 var _restarting: bool = false
 var _current_wave: int = 1
 var _transitioning: bool = false
+var _alive_players: int = 1
 
 
 func _ready() -> void:
@@ -42,16 +51,34 @@ func _ready() -> void:
 			points.append(point)
 	wave_spawner.spawn_points = points
 
-	# Bind HUD to player health
+	# Bind HUD to player 1 health
 	hud.connect_to_player(player)
 	hud.set_total_waves(wave_spawner.get_total_waves())
 	hud.set_wave(_current_wave)
 	hud.retry_pressed.connect(_restart_run)
 	hud.menu_pressed.connect(_return_to_main_menu)
 
-	# Connect player death
-	player.died.connect(_on_player_died)
+	# Track alive players (starts at 1 for the scene player)
+	_alive_players = CoopManager.player_count
+	player.died.connect(_on_any_player_died)
 	player.damaged.connect(_on_player_damaged)
+
+	# Spawn extra local co-op players (players 2–4 use gamepad slots 0, 1, 2).
+	wave_spawner.start(player)
+	var extra_count: int = CoopManager.player_count - 1
+	if extra_count > 0:
+		var player_packed: PackedScene = load(PLAYER_SCENE) as PackedScene
+		for i: int in extra_count:
+			if player_packed == null:
+				break
+			var extra: PlayerController = player_packed.instantiate() as PlayerController
+			if extra == null:
+				continue
+			extra.device_id = i  # player 2 → slot 0, player 3 → slot 1, player 4 → slot 2
+			extra.position = player.position + COOP_SPAWN_OFFSETS[i]
+			add_child(extra)
+			extra.died.connect(_on_any_player_died)
+			wave_spawner.add_coop_player(extra)
 
 	# Connect wave events
 	wave_spawner.wave_started.connect(_on_wave_started)
@@ -62,15 +89,14 @@ func _ready() -> void:
 
 	hud.set_score(_score)
 
-	# Begin
-	wave_spawner.start(player)
 
-
-func _on_player_died() -> void:
-	_run_finished = true
-	GameStateManager.change_state(GameStateManager.State.GAME_OVER)
-	hud.show_final_results(_score, _current_wave)
-	print("GAME OVER")
+func _on_any_player_died() -> void:
+	_alive_players -= 1
+	if _alive_players <= 0:
+		_run_finished = true
+		GameStateManager.change_state(GameStateManager.State.GAME_OVER)
+		hud.show_final_results(_score, _current_wave)
+		print("GAME OVER")
 
 
 func _on_wave_started(wave_number: int) -> void:

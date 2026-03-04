@@ -56,6 +56,7 @@ func test_spawn_point_respects_min_distance() -> void:
 	var player := Node2D.new()
 	player.global_position = Vector2.ZERO
 	spawner._player = player
+	spawner._players = [player]
 	spawner.min_spawn_distance_from_player = 200.0
 	spawner.spawn_retry_count = 1
 

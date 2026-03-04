@@ -22,6 +22,7 @@ config/icon="res://logo.png"
 [autoload]
 
 GameStateManager="*res://scripts/systems/game_state_manager.gd"
+CoopManager="*res://scripts/systems/coop_manager.gd"
 
 [display]
 

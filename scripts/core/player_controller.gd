@@ -23,6 +23,9 @@ signal died
 ## NodePath to the active [BaseWeapon] child. Set in the inspector.
 @export var weapon_path: NodePath = NodePath("WeaponMount/BasicBlaster")
 
+## Input device index for local co-op. -1 = keyboard + mouse (player 1); 0+ = gamepad slot.
+@export var device_id: int = -1
+
 @onready var health_component: HealthComponent = $HealthComponent
 
 var _weapon: BaseWeapon = null
@@ -56,9 +59,17 @@ func _physics_process(delta: float) -> void:
 
 
 func _handle_movement(delta: float) -> void:
-	var input_dir: Vector2 = Input.get_vector(
-		"move_left", "move_right", "move_up", "move_down"
-	)
+	var input_dir: Vector2
+	if device_id < 0:
+		input_dir = Input.get_vector("move_left", "move_right", "move_up", "move_down")
+	else:
+		input_dir = Vector2(
+			Input.get_joy_axis(device_id, JOY_AXIS_LEFT_X),
+			Input.get_joy_axis(device_id, JOY_AXIS_LEFT_Y)
+		)
+		if input_dir.length() < 0.2:
+			input_dir = Vector2.ZERO
+		input_dir = input_dir.limit_length(1.0)
 	if input_dir != Vector2.ZERO:
 		velocity = velocity.move_toward(input_dir * move_speed, acceleration * delta)
 	else:
@@ -66,12 +77,25 @@ func _handle_movement(delta: float) -> void:
 
 
 func _handle_aim() -> void:
-	look_at(get_global_mouse_position())
+	if device_id < 0:
+		look_at(get_global_mouse_position())
+	else:
+		var aim := Vector2(
+			Input.get_joy_axis(device_id, JOY_AXIS_RIGHT_X),
+			Input.get_joy_axis(device_id, JOY_AXIS_RIGHT_Y)
+		)
+		if aim.length() > 0.2:
+			rotation = aim.angle()
 
 
 func _handle_fire(delta: float) -> void:
 	_fire_cooldown -= delta
-	if Input.is_action_pressed("fire") and _fire_cooldown <= 0.0:
+	var should_fire: bool
+	if device_id < 0:
+		should_fire = Input.is_action_pressed("fire")
+	else:
+		should_fire = Input.get_joy_axis(device_id, JOY_AXIS_TRIGGER_RIGHT) > 0.5
+	if should_fire and _fire_cooldown <= 0.0:
 		_fire()
 
 

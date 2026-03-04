@@ -33,6 +33,7 @@ var spawn_points: Array[Node2D] = []
 var _current_wave: int = 0
 var _active_enemies: int = 0
 var _player: Node2D = null
+var _players: Array[Node2D] = []
 var _between_waves: bool = false
 var _spawning: bool = false
 var _transitioning: bool = false
@@ -53,6 +54,7 @@ var _wave_in_progress: bool = false
 ## Begin spawning waves, targeting [param player].
 func start(player: Node2D) -> void:
 	_player = player
+	_players = [player]
 	_current_wave = 0
 	_transitioning = false
 	_between_waves = false
@@ -60,6 +62,13 @@ func start(player: Node2D) -> void:
 	_starting_wave = false
 	_wave_in_progress = false
 	_start_wave(_current_wave)
+
+
+## Register an additional co-op player as an enemy target.
+## Call after [method start] for each extra player (players 2–4).
+func add_coop_player(player: Node2D) -> void:
+	if not _players.has(player):
+		_players.append(player)
 
 
 func _start_wave(index: int) -> void:
@@ -112,10 +121,22 @@ func _spawn_single_enemy() -> void:
 		return
 
 	enemy.global_position = point.global_position
-	if _player != null:
+	var active_players: Array[Node2D] = _players.filter(func(p: Node2D) -> bool: return is_instance_valid(p))
+	if not active_players.is_empty():
+		enemy.set_target(active_players[randi() % active_players.size()])
+	elif _player != null:
 		enemy.set_target(_player)
 	enemy.died.connect(_on_enemy_died)
 	get_parent().add_child(enemy)
+	# Scale enemy HP for co-op difficulty.
+	# add_child() triggers _ready() on the enemy, so HealthComponent is initialized here.
+	var health: HealthComponent = enemy.get_node_or_null("HealthComponent") as HealthComponent
+	if health != null:
+		var hp_multiplier: float = CoopManager.get_enemy_health_multiplier()
+		if not is_equal_approx(hp_multiplier, 1.0):
+			health.max_health *= hp_multiplier
+			health.current_health = health.max_health
+			health.health_changed.emit(health.current_health, health.max_health)
 	enemy_spawned.emit(enemy)
 
 
@@ -158,12 +179,14 @@ func get_total_waves() -> int:
 
 
 func _get_wave_enemy_count(index: int) -> int:
+	var base_count: int = 0
 	if index < wave_data_list.size():
-		return maxi(0, wave_data_list[index].enemy_count)
-	if not wave_data_list.is_empty():
+		base_count = maxi(0, wave_data_list[index].enemy_count)
+	elif not wave_data_list.is_empty():
 		push_warning("WaveSpawner: missing WaveData for index %d; defaulting enemy_count=0." % index)
-		return 0
-	return enemies_per_wave
+	else:
+		base_count = enemies_per_wave
+	return roundi(base_count * CoopManager.get_enemy_count_multiplier())
 
 
 func _get_wave_spawn_delay(index: int) -> float:
@@ -199,18 +222,26 @@ func _pick_enemy_scene_from_pool(wave_data: WaveData) -> PackedScene:
 func _select_spawn_point() -> Node2D:
 	if spawn_points.is_empty():
 		return null
-	if _player == null:
+	var active_players: Array[Node2D] = _players.filter(func(p: Node2D) -> bool: return is_instance_valid(p))
+	if active_players.is_empty():
 		return spawn_points[randi() % spawn_points.size()]
 
 	for _attempt: int in spawn_retry_count:
 		var candidate: Node2D = spawn_points[randi() % spawn_points.size()]
-		if candidate.global_position.distance_to(_player.global_position) >= min_spawn_distance_from_player:
+		if _is_far_from_all_players(candidate.global_position, active_players):
 			return candidate
 
 	for candidate: Node2D in spawn_points:
-		if candidate.global_position.distance_to(_player.global_position) >= min_spawn_distance_from_player:
+		if _is_far_from_all_players(candidate.global_position, active_players):
 			return candidate
 	return null
+
+
+func _is_far_from_all_players(pos: Vector2, active_players: Array[Node2D]) -> bool:
+	for p: Node2D in active_players:
+		if pos.distance_to(p.global_position) < min_spawn_distance_from_player:
+			return false
+	return true
 
 
 func get_total_waves() -> int:
