@@ -5,14 +5,24 @@
 class_name HUD
 extends CanvasLayer
 
+signal retry_pressed
+signal menu_pressed
+
 @onready var health_bar: ProgressBar = $HealthContainer/HealthBar
 @onready var health_label: Label = $HealthContainer/HealthLabel
 @onready var wave_label: Label = $HealthContainer/WaveLabel
 @onready var score_label: Label = $HealthContainer/ScoreLabel
 @onready var result_label: Label = $ResultLabel
 @onready var wave_banner: Label = $WaveBanner
+@onready var game_over_panel: PanelContainer = $GameOverPanel
+@onready var final_wave_label: Label = $GameOverPanel/Margin/VBox/FinalWaveLabel
+@onready var final_score_label: Label = $GameOverPanel/Margin/VBox/FinalScoreLabel
+@onready var retry_button: Button = $GameOverPanel/Margin/VBox/Buttons/RetryButton
+@onready var menu_button: Button = $GameOverPanel/Margin/VBox/Buttons/MenuButton
 
-var _banner_tween: Tween = null
+var _total_waves: int = 0
+var _current_wave: int = 1
+var _banner_tween: Tween
 
 
 ## Bind the HUD to [param player]'s HealthComponent.
@@ -31,8 +41,9 @@ func _on_health_changed(current: float, maximum: float) -> void:
 	health_label.text = "HP  %d / %d" % [int(current), int(maximum)]
 
 
-func set_wave(wave_number: int, total_waves: int = 5) -> void:
-	wave_label.text = "Wave %d / %d" % [wave_number, total_waves]
+func set_wave(wave_number: int) -> void:
+	_current_wave = wave_number
+	_update_wave_label()
 
 
 func set_score(score: int) -> void:
@@ -40,30 +51,61 @@ func set_score(score: int) -> void:
 
 
 func show_final_results(score: int, waves_survived: int) -> void:
-	result_label.text = "Run Complete\n\nFinal Wave: %d\nScore: %d\n\n[LMB/Enter] Retry    [ESC] Menu" % [waves_survived, score]
-	result_label.visible = true
+	result_label.visible = false
+	_show_wave_banner(false)
+	var wave_text := "Final Wave: %d" % waves_survived
+	if _total_waves > 0:
+		wave_text = "Final Wave: %d / %d" % [waves_survived, _total_waves]
+	final_wave_label.text = wave_text
+	final_score_label.text = "Score: %d" % score
+	game_over_panel.visible = true
+	retry_button.grab_focus()
 
 
-## Display wave transition banner with animation.
-## Duration: ~1.2s (fade in 0.2s + hold 0.8s + fade out 0.2s)
+func set_total_waves(total: int) -> void:
+	_total_waves = max(total, 0)
+	_update_wave_label()
+
+
 func show_wave_banner(wave_number: int) -> void:
-	# Cancel any existing banner animation to prevent stacking
-	if _banner_tween != null and _banner_tween.is_valid():
+	_current_wave = wave_number
+	_update_wave_label()
+	_show_wave_banner(true)
+
+
+func _ready() -> void:
+	game_over_panel.visible = false
+	wave_banner.visible = false
+	retry_button.pressed.connect(func() -> void: retry_pressed.emit())
+	menu_button.pressed.connect(func() -> void: menu_pressed.emit())
+
+
+func _update_wave_label() -> void:
+	if _total_waves > 0:
+		wave_label.text = "Wave %d / %d" % [_current_wave, _total_waves]
+	else:
+		wave_label.text = "Wave %d" % _current_wave
+
+
+func _show_wave_banner(show: bool) -> void:
+	if _banner_tween != null:
 		_banner_tween.kill()
-
-	wave_banner.text = "Wave %d" % wave_number
-	wave_banner.modulate = Color(1, 1, 1, 0)  # Start transparent
+		banner_cleanup()
+	if not show:
+		wave_banner.visible = false
+		return
+	wave_banner.text = wave_label.text
 	wave_banner.visible = true
-
+	wave_banner.modulate.a = 0.0
+	wave_banner.scale = Vector2(0.9, 0.9)
 	_banner_tween = create_tween()
-	_banner_tween.set_ease(Tween.EASE_IN_OUT)
-	_banner_tween.set_trans(Tween.TRANS_CUBIC)
-
-	# Fade in: 0.2s
 	_banner_tween.tween_property(wave_banner, "modulate:a", 1.0, 0.2)
-	# Hold: 0.8s
-	_banner_tween.tween_interval(0.8)
-	# Fade out: 0.2s
-	_banner_tween.tween_property(wave_banner, "modulate:a", 0.0, 0.2)
-	# Hide after animation complete
-	_banner_tween.tween_callback(func() -> void: wave_banner.visible = false)
+	_banner_tween.tween_property(wave_banner, "scale", Vector2.ONE, 0.1)
+	_banner_tween.tween_interval(0.7)
+	_banner_tween.tween_property(wave_banner, "modulate:a", 0.0, 0.35)
+	_banner_tween.tween_callback(banner_cleanup)
+
+
+func banner_cleanup() -> void:
+	wave_banner.visible = false
+	_banner_tween = null

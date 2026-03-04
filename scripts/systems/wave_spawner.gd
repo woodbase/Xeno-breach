@@ -34,6 +34,7 @@ var _current_wave: int = 0
 var _active_enemies: int = 0
 var _player: Node2D = null
 var _spawning: bool = false
+var _starting_wave: bool = false
 var _wave_in_progress: bool = false
 
 
@@ -41,13 +42,19 @@ var _wave_in_progress: bool = false
 func start(player: Node2D) -> void:
 	_player = player
 	_current_wave = 0
+	_active_enemies = 0
+	_starting_wave = false
 	_wave_in_progress = false
 	_start_wave(_current_wave)
 
 
 func _start_wave(index: int) -> void:
+	if _starting_wave:
+		return
+	_starting_wave = true
 	if index >= _get_total_waves():
 		all_waves_completed.emit()
+		_starting_wave = false
 		return
 
 	# Guard against double-triggering wave starts
@@ -57,6 +64,7 @@ func _start_wave(index: int) -> void:
 	_wave_in_progress = true
 	wave_started.emit(index + 1)
 	_active_enemies = _get_wave_enemy_count(index)
+	_starting_wave = false
 	_spawn_wave_enemies()
 
 
@@ -179,3 +187,7 @@ func _select_spawn_point() -> Node2D:
 		if candidate.global_position.distance_to(_player.global_position) >= min_spawn_distance_from_player:
 			return candidate
 	return null
+
+
+func get_total_waves() -> int:
+	return _get_total_waves()

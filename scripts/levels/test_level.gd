@@ -25,6 +25,7 @@ var _wave_damage_taken: float = 0.0
 var _wave_damage_dealt: float = 0.0
 var _wave_kills: int = 0
 var _run_finished: bool = false
+var _current_wave: int = 1
 var _transitioning: bool = false
 
 
@@ -42,6 +43,10 @@ func _ready() -> void:
 
 	# Bind HUD to player health
 	hud.connect_to_player(player)
+	hud.set_total_waves(wave_spawner.get_total_waves())
+	hud.set_wave(_current_wave)
+	hud.retry_pressed.connect(_restart_run)
+	hud.menu_pressed.connect(_return_to_main_menu)
 
 	# Connect player death
 	player.died.connect(_on_player_died)
@@ -63,11 +68,12 @@ func _ready() -> void:
 func _on_player_died() -> void:
 	_run_finished = true
 	GameStateManager.change_state(GameStateManager.State.GAME_OVER)
-	hud.show_final_results(_score, _waves_survived)
+	hud.show_final_results(_score, _current_wave)
 	print("GAME OVER")
 
 
 func _on_wave_started(wave_number: int) -> void:
+	_current_wave = wave_number
 	_wave_started_at_ms = Time.get_ticks_msec()
 	_wave_damage_taken = 0.0
 	_wave_damage_dealt = 0.0
@@ -96,7 +102,7 @@ func _on_all_waves_completed() -> void:
 
 	_run_finished = true
 	GameStateManager.change_state(GameStateManager.State.VICTORY)
-	hud.show_final_results(_score, _waves_survived)
+	hud.show_final_results(_score, _current_wave)
 	print("VICTORY — all waves cleared!")
 
 

@@ -6,6 +6,21 @@
 layer = 10
 script = ExtResource("1_hud")
 
+[node name="WaveBanner" type="Label" parent="."]
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -160.0
+offset_top = -40.0
+offset_right = 160.0
+offset_bottom = 40.0
+text = "Wave 1 / 5"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 36
+
 [node name="HealthContainer" type="VBoxContainer" parent="."]
 offset_left = 16.0
 offset_top = 16.0
@@ -40,6 +55,8 @@ text = "Run complete"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 24
 
+[node name="GameOverPanel" type="PanelContainer" parent="."]
+visible = false
 [node name="WaveBanner" type="Label" parent="."]
 visible = false
 anchors_preset = 8
@@ -47,6 +64,54 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
+offset_left = -180.0
+offset_top = -110.0
+offset_right = 180.0
+offset_bottom = 130.0
+
+[node name="Margin" type="MarginContainer" parent="GameOverPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="GameOverPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="GameOverTitle" type="Label" parent="GameOverPanel/Margin/VBox"]
+layout_mode = 2
+text = "Run Complete"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 24
+
+[node name="FinalWaveLabel" type="Label" parent="GameOverPanel/Margin/VBox"]
+layout_mode = 2
+text = "Final Wave: 1 / 5"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 16
+
+[node name="FinalScoreLabel" type="Label" parent="GameOverPanel/Margin/VBox"]
+layout_mode = 2
+text = "Score: 0"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 16
+
+[node name="Buttons" type="HBoxContainer" parent="GameOverPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="RetryButton" type="Button" parent="GameOverPanel/Margin/VBox/Buttons"]
+layout_mode = 2
+text = "Retry"
+size_flags_horizontal = 3
+
+[node name="MenuButton" type="Button" parent="GameOverPanel/Margin/VBox/Buttons"]
+layout_mode = 2
+text = "Menu"
+size_flags_horizontal = 3
 offset_left = -200.0
 offset_top = -50.0
 offset_right = 200.0
