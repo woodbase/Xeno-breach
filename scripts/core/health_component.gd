@@ -40,6 +40,8 @@ func _process(delta: float) -> void:
 func take_damage(amount: float) -> void:
 	if amount <= 0.0:
 		return
+	if current_health <= 0.0:
+		return
 	if _invulnerability_timer > 0.0:
 		return
 	current_health = maxf(0.0, current_health - amount)
