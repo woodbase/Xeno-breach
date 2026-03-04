@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/test_level.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_player"]
@@ -10,6 +10,7 @@
 [ext_resource type="Resource" path="res://data/waves/wave_03.tres" id="8_wave_03"]
 [ext_resource type="Resource" path="res://data/waves/wave_04.tres" id="9_wave_04"]
 [ext_resource type="Resource" path="res://data/waves/wave_05.tres" id="10_wave_05"]
+[ext_resource type="Texture2D" path="res://assets/environment/sewage/Wall Tiles.png" id="11_floor_texture"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_obstacle_h"]
 size = Vector2(280, 40)
@@ -21,12 +22,14 @@ size = Vector2(40, 220)
 script = ExtResource("1_level")
 debug_telemetry_enabled = true
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="TextureRect" parent="."]
 offset_left = -640.0
 offset_top = -360.0
 offset_right = 640.0
 offset_bottom = 360.0
-color = Color(0.04, 0.04, 0.09, 1.0)
+texture = ExtResource("11_floor_texture")
+stretch_mode = 1
+modulate = Color(0.26, 0.26, 0.34, 0.72)
 z_index = -10
 
 [node name="Player" type="CharacterBody2D" parent="." instance=ExtResource("2_player")]
