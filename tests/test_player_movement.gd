@@ -20,6 +20,9 @@ func _run_all() -> void:
 	test_forward_input_ignores_player_rotation()
 	test_right_input_ignores_player_rotation()
 	test_zero_input_does_not_change_direction()
+	test_clamp_normal_bounds_keeps_position_inside()
+	test_clamp_inverted_bounds_same_as_normalized()
+	test_clamp_position_inside_bounds_unchanged()
 
 
 # ---------------------------------------------------------------------------
@@ -77,3 +80,49 @@ func test_zero_input_does_not_change_direction() -> void:
 	var result := input_dir.rotated(rotation_angle)
 	_assert(_is_approx_equal(result, Vector2.ZERO),
 		"zero input stays zero regardless of rotation")
+
+
+# ---------------------------------------------------------------------------
+# Playfield clamping tests
+#
+# These tests validate the clamping logic used in PlayerController directly:
+#   var bounds := playfield_bounds.abs()
+#   position = position.clamp(bounds.position, bounds.end)
+# ---------------------------------------------------------------------------
+
+func _apply_clamp(pos: Vector2, bounds: Rect2) -> Vector2:
+	var normalized: Rect2 = bounds.abs()
+	return pos.clamp(normalized.position, normalized.end)
+
+
+func test_clamp_normal_bounds_keeps_position_inside() -> void:
+	# A position outside a normally-defined Rect2 is clamped to the boundary.
+	var bounds := Rect2(Vector2(-100.0, -100.0), Vector2(200.0, 200.0))
+	var outside_pos := Vector2(200.0, -200.0)
+	var result := _apply_clamp(outside_pos, bounds)
+	var normalized := bounds.abs()
+	_assert(result.x >= normalized.position.x and result.x <= normalized.end.x
+		and result.y >= normalized.position.y and result.y <= normalized.end.y,
+		"position outside normal bounds is clamped inside")
+
+
+func test_clamp_inverted_bounds_same_as_normalized() -> void:
+	# An inverted Rect2 (negative size / swapped corners) should produce the
+	# same clamped result as its abs()-normalized equivalent.
+	var normal_bounds := Rect2(Vector2(-100.0, -100.0), Vector2(200.0, 200.0))
+	# Build inverted bounds: end is the top-left, position is the bottom-right.
+	var inverted_bounds := Rect2(Vector2(100.0, 100.0), Vector2(-200.0, -200.0))
+	var pos := Vector2(200.0, -150.0)
+	var result_normal := _apply_clamp(pos, normal_bounds)
+	var result_inverted := _apply_clamp(pos, inverted_bounds)
+	_assert(_is_approx_equal(result_normal, result_inverted),
+		"inverted Rect2 clamps to same result as normalized Rect2")
+
+
+func test_clamp_position_inside_bounds_unchanged() -> void:
+	# A position already inside the bounds must not be modified.
+	var bounds := Rect2(Vector2(-100.0, -100.0), Vector2(200.0, 200.0))
+	var inside_pos := Vector2(50.0, -30.0)
+	var result := _apply_clamp(inside_pos, bounds)
+	_assert(_is_approx_equal(result, inside_pos),
+		"position already inside bounds is unchanged after clamping")
