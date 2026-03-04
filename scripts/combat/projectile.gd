@@ -57,6 +57,7 @@ func _on_body_entered(body: Node) -> void:
 	var health: HealthComponent = body.get_node_or_null("HealthComponent") as HealthComponent
 	if health != null:
 		health.take_damage(damage)
+		SoundManager.play_sfx("impact")
 	_spawn_impact()
 	_despawn()
 

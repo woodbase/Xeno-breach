@@ -54,6 +54,7 @@ func fire(direction: Vector2) -> void:
 		level.add_child(projectile)
 
 	_show_muzzle_flash()
+	SoundManager.play_sfx("shoot")
 
 
 func _show_muzzle_flash() -> void:
