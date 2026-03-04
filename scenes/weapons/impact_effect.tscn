@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/impact_effect.gd" id="1_impact"]
+
+[node name="ImpactEffect" type="Node2D"]
+script = ExtResource("1_impact")
+
+[node name="Body" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0, -6, 3, -3, 6, 0, 3, 3, 0, 6, -3, 3, -6, 0, -3, -3)
+color = Color(1.0, 0.6, 0.1, 1.0)
