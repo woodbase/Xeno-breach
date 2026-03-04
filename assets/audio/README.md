@@ -1,62 +1,75 @@
 # Audio Assets
 
-This directory contains all audio assets for Xeno Breach.
+Place audio files in the directories below. They are loaded at runtime by the
+**AudioManager** autoload (**Project → Project Settings → Autoload → AudioManager**).
 
-## Directory Structure
+Supported formats: `.ogg` (recommended for loops and music), `.wav` (recommended for
+short one-shot SFX).
 
-- **sfx/** - Sound effects
-  - **weapons/** - Weapon firing sounds
-  - **impacts/** - Hit and impact sounds
-  - **enemies/** - Enemy vocalizations and sounds
-  - **ui/** - User interface sounds
-- **music/** - Background music tracks
-- **ambience/** - Ambient/atmospheric sounds
+---
 
-## Audio Format
+## Directory layout
 
-Recommended format: **OGG Vorbis** (.ogg)
-- Godot's preferred format
-- Good compression with quality
-- No licensing issues
-- Smaller file size than WAV
+```
+assets/audio/
+├── sfx/
+│   ├── weapons/
+│   │   └── blaster_fire.ogg        → AudioManager SOUNDS["weapon_fire"]
+│   ├── impacts/
+│   │   ├── impact_body.ogg         → AudioManager SOUNDS["impact_body"]
+│   │   ├── impact_wall.ogg         → AudioManager SOUNDS["impact_wall"]
+│   │   ├── enemy_death.ogg         → AudioManager SOUNDS["enemy_death"]
+│   │   └── player_hurt.ogg         → AudioManager SOUNDS["player_hurt"]
+│   ├── enemies/
+│   │   ├── enemy_alert.ogg         → AudioManager SOUNDS["enemy_alert"]
+│   │   └── enemy_attack.ogg        → AudioManager SOUNDS["enemy_attack"]
+│   └── ui/
+│       ├── button_select.ogg       → AudioManager SOUNDS["button_select"]
+│       ├── button_confirm.ogg      → AudioManager SOUNDS["button_confirm"]
+│       ├── wave_start.ogg          → AudioManager SOUNDS["wave_start"]
+│       └── game_over.ogg           → AudioManager SOUNDS["game_over"]
+├── music/
+│   ├── menu_theme.ogg              → AudioManager SOUNDS["menu_theme"]
+│   ├── combat_theme.ogg            → AudioManager SOUNDS["combat_theme"]
+│   └── victory_theme.ogg           → AudioManager SOUNDS["victory_theme"]
+└── ambience/
+    └── station_hum.ogg             → AudioManager SOUNDS["station_ambience"]
+```
 
-Alternative formats supported:
-- WAV (uncompressed, larger files)
-- MP3 (compressed, licensing considerations)
+---
 
-## Required Audio Files
+## When sounds are triggered
 
-### SFX - Weapons
-- `blaster_fire.ogg` - Player weapon firing sound
+| Event | Sound key | Caller |
+|---|---|---|
+| Player fires weapon | `"weapon_fire"` | `test_level.gd` → `_on_player_fired()` |
+| Player receives damage | `"player_hurt"` | `test_level.gd` → `_on_player_damaged_audio()` |
+| Player dies | `"game_over"` (UI) | `test_level.gd` → `_on_player_died()` |
+| Enemy alerts (spots player) | `"enemy_alert"` | `enemy_base.gd` → `_update_state()` |
+| Enemy attacks | `"enemy_attack"` | `enemy_base.gd` → `_do_attack()` |
+| Enemy dies | `"enemy_death"` | `test_level.gd` → `_on_enemy_spawned()` |
+| Projectile hits entity | `"impact_body"` | `projectile.gd` → `_on_body_entered()` |
+| Projectile hits wall | `"impact_wall"` | `projectile.gd` → `_on_body_entered()` |
+| Wave starts | `"wave_start"` (UI) | `test_level.gd` → `_on_wave_started()` |
+| Button hover/focus | `"button_select"` (UI) | `main_menu.gd` |
+| Button confirmed | `"button_confirm"` (UI) | `main_menu.gd` |
 
-### SFX - Impacts
-- `impact_body.ogg` - Projectile hitting enemy
-- `impact_wall.ogg` - Projectile hitting wall/obstacle
-- `enemy_death.ogg` - Enemy death sound
-- `player_hurt.ogg` - Player taking damage
+Background music is managed explicitly by each scene:
 
-### SFX - Enemies
-- `enemy_alert.ogg` - Enemy entering alert/chase state
-- `enemy_attack.ogg` - Enemy attack sound
+| Scene / event | Music |
+|---|---|
+| `main_menu.gd._ready()` | `"menu_theme"` |
+| `test_level.gd._ready()` | `"combat_theme"` |
+| `test_level.gd` — all waves cleared | `"victory_theme"` |
+| `test_level.gd._on_player_died()` | *(music stopped)* |
 
-### SFX - UI
-- `button_select.ogg` - Menu button hover/select
-- `button_confirm.ogg` - Menu button click/confirm
-- `wave_start.ogg` - Wave starting announcement
-- `game_over.ogg` - Game over sound
+## Audio buses
 
-### Music
-- `menu_theme.ogg` - Main menu background music
-- `combat_theme.ogg` - In-game combat music
-- `victory_theme.ogg` - Victory screen music
+AudioManager creates these buses at startup if they don't already exist:
 
-### Ambience
-- `station_ambience.ogg` - Space station ambient sound (looping)
-
-## Notes
-
-- All audio files are optional during development
-- The AudioManager will gracefully skip missing files
-- Replace placeholder files with actual audio assets
-- Keep file sizes reasonable (compress/optimize audio)
-- Test audio levels to ensure consistent volume
+| Bus | Used for |
+|---|---|
+| `SFX` | Positional sound effects (AudioStreamPlayer2D) |
+| `Music` | Background music loop |
+| `UI` | Non-positional interface sounds |
+| `Ambience` | Looping ambient background layer |
