@@ -49,8 +49,10 @@ func _physics_process(delta: float) -> void:
 
 
 func _update_state() -> void:
+	_ensure_target()
 	var old_state: State = _current_state
-	if _target == null:
+	if _target == null or not is_instance_valid(_target):
+		_target = null
 		_current_state = State.IDLE
 	else:
 		var dist: float = global_position.distance_to(_target.global_position)
@@ -81,6 +83,14 @@ func _process_state(delta: float) -> void:
 			if _attack_timer <= 0.0:
 				_do_attack()
 				_attack_timer = attack_cooldown
+
+
+func _ensure_target() -> void:
+	if _target != null and is_instance_valid(_target):
+		return
+	var candidate: Node = get_tree().get_first_node_in_group("player")
+	var node := candidate as Node2D
+	_target = node
 
 
 ## Assign the node this enemy will pursue and attack.

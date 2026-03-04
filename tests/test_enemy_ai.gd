@@ -79,6 +79,36 @@ func test_target_in_attack_range_switches_to_attack() -> void:
 	_assert(saw_attack, "enemy enters attack inside attack range")
 
 
+func test_auto_detects_player_group_and_chases() -> void:
+	var enemy := _make_enemy()
+	enemy.global_position = Vector2.ZERO
+	var target := _make_target(Vector2(120.0, 0.0))
+	target.add_to_group("player")
+	var saw_chase := false
+	enemy.state_changed.connect(func(new_state: EnemyBase.State, _old: EnemyBase.State) -> void:
+		if new_state == EnemyBase.State.CHASE:
+			saw_chase = true
+	)
+	enemy._update_state()
+	_assert(saw_chase, "enemy auto-detects player group within detection range")
+
+
+func test_leaving_detection_range_returns_to_idle() -> void:
+	var enemy := _make_enemy()
+	enemy.global_position = Vector2.ZERO
+	var target := _make_target(Vector2(100.0, 0.0))
+	enemy.set_target(target)
+	enemy._update_state()
+	var saw_idle := false
+	enemy.state_changed.connect(func(new_state: EnemyBase.State, _old: EnemyBase.State) -> void:
+		if new_state == EnemyBase.State.IDLE:
+			saw_idle = true
+	)
+	target.global_position = Vector2(500.0, 0.0)
+	enemy._update_state()
+	_assert(saw_idle, "enemy returns to idle when target exits detection range")
+
+
 func test_hit_flash_sets_and_resets_modulate() -> void:
 	var enemy := _make_enemy()
 	var body := enemy.get_node("Body") as CanvasItem
