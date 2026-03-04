@@ -13,7 +13,6 @@ const TELEMETRY_TARGET_CLEAR_TIME_MAX: float = 40.0
 const TELEMETRY_TARGET_KILLS_PER_MIN_MIN: float = 10.0
 const TELEMETRY_TARGET_KILLS_PER_MIN_MAX: float = 35.0
 const TELEMETRY_TARGET_DAMAGE_TAKEN_MAX: float = 30.0
-const LEVEL_SCENE_PATH: String = "res://scenes/levels/test_level.tscn"
 const MAIN_MENU_SCENE_PATH: String = "res://scenes/ui/main_menu.tscn"
 
 @export var debug_telemetry_enabled: bool = false
@@ -162,7 +161,7 @@ func _log_wave_telemetry(wave_number: int) -> void:
 
 func _restart_run() -> void:
 	get_tree().paused = false
-	get_tree().change_scene_to_file(LEVEL_SCENE_PATH)
+	get_tree().reload_current_scene()
 
 
 func _go_to_next_level() -> void:
