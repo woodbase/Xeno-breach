@@ -35,6 +35,17 @@ var _active_enemies: int = 0
 var _player: Node2D = null
 var _between_waves: bool = false
 var _spawning: bool = false
+var _transitioning: bool = false
+
+
+## Returns true while a wave transition is in progress (between-wave delay).
+func is_transitioning() -> bool:
+	return _transitioning
+
+
+## Returns the total number of waves.
+func get_total_waves() -> int:
+	return _get_total_waves()
 var _starting_wave: bool = false
 var _wave_in_progress: bool = false
 
@@ -43,6 +54,7 @@ var _wave_in_progress: bool = false
 func start(player: Node2D) -> void:
 	_player = player
 	_current_wave = 0
+	_transitioning = false
 	_between_waves = false
 	_active_enemies = 0
 	_starting_wave = false
@@ -115,6 +127,12 @@ func _on_enemy_removed(killed: bool) -> void:
 	_active_enemies -= 1
 	if killed:
 		enemy_killed.emit()
+	if _active_enemies <= 0 and not _transitioning:
+		_transitioning = true
+		wave_completed.emit(_current_wave + 1)
+		_current_wave += 1
+		await get_tree().create_timer(between_wave_delay).timeout
+		_transitioning = false
 	if _active_enemies <= 0 and not _between_waves:
 		_between_waves = true
 	if _active_enemies <= 0:

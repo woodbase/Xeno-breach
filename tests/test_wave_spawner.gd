@@ -17,6 +17,9 @@ func _run_all() -> void:
 	test_missing_spawn_point_returns_null()
 	test_wave_enemy_scene_override_uses_wave_data_scene()
 	test_wave_enemy_scene_missing_override_falls_back()
+	test_get_total_waves_public_accessor()
+	test_get_total_waves_falls_back_to_total_waves()
+	test_transitioning_guard_starts_false()
 
 
 func _assert(condition: bool, name: String) -> void:
@@ -95,3 +98,21 @@ func test_wave_enemy_scene_missing_override_falls_back() -> void:
 	spawner.wave_data_list = [wave]
 
 	_assert(spawner._get_wave_enemy_scene(0) == fallback_enemy_scene, "fallback enemy scene is used when wave enemy_scene is null")
+
+
+func test_get_total_waves_public_accessor() -> void:
+	var spawner := WaveSpawner.new()
+	spawner.wave_data_list = [_make_wave(3, 0.2), _make_wave(4, 0.3), _make_wave(2, 0.4)]
+	_assert(spawner.get_total_waves() == 3, "get_total_waves() returns wave_data_list size when list is set")
+
+
+func test_get_total_waves_falls_back_to_total_waves() -> void:
+	var spawner := WaveSpawner.new()
+	spawner.total_waves = 5
+	spawner.wave_data_list = []
+	_assert(spawner.get_total_waves() == 5, "get_total_waves() falls back to total_waves when wave_data_list is empty")
+
+
+func test_transitioning_guard_starts_false() -> void:
+	var spawner := WaveSpawner.new()
+	_assert(spawner.is_transitioning() == false, "is_transitioning() is false on a new WaveSpawner")
