@@ -8,7 +8,7 @@
 ##
 ## Visual feedback:
 ## - A [Line2D] child named "Tracer" renders a lightweight motion tail.
-## - An [ImpactEffect] scene is spawned at the collision point on hit.
+## - An [ImpactEffect] scene is spawned at the projectile's position on hit.
 class_name Projectile
 extends Area2D
 
@@ -27,6 +27,7 @@ var source_body: Node2D = null
 
 var _lifetime_timer: float = 0.0
 var _tracer: Line2D = null
+var _is_despawning: bool = false
 
 ## Length of the motion tracer in pixels.
 const TRACER_LENGTH: float = 20.0
@@ -49,6 +50,8 @@ func _physics_process(delta: float) -> void:
 
 
 func _on_body_entered(body: Node) -> void:
+	if _is_despawning:
+		return
 	if body == source_body:
 		return
 	var health: HealthComponent = body.get_node_or_null("HealthComponent") as HealthComponent
@@ -72,6 +75,7 @@ func _spawn_impact() -> void:
 
 
 func _despawn() -> void:
+	_is_despawning = true
 	if _tracer != null:
 		_tracer.clear_points()
 	queue_free()
