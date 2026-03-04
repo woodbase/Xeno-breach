@@ -28,6 +28,10 @@ signal died
 var _weapon: BaseWeapon = null
 var _fire_cooldown: float = 0.0
 var _normalized_bounds: Rect2
+var _damage_feedback_duration: float = 0.2
+var _damage_feedback_timer: SceneTreeTimer = null
+var _is_showing_damage_feedback: bool = false
+var _damage_overlay: ColorRect = null
 
 
 func _ready() -> void:
@@ -37,6 +41,7 @@ func _ready() -> void:
 	health_component.invulnerability_changed.connect(_on_invulnerability_changed)
 	if not weapon_path.is_empty():
 		_weapon = get_node_or_null(weapon_path) as BaseWeapon
+	_damage_overlay = get_tree().root.find_child("DamageOverlay", true, false) as ColorRect
 
 
 func _physics_process(delta: float) -> void:
@@ -80,6 +85,21 @@ func _fire() -> void:
 ## Delegate incoming damage to the HealthComponent.
 func take_damage(amount: float) -> void:
 	health_component.take_damage(amount)
+	play_damage_feedback()
+
+
+## Briefly flash the damage overlay red to give visual hit feedback.
+func play_damage_feedback() -> void:
+	if _damage_overlay == null:
+		return
+	_is_showing_damage_feedback = true
+	_damage_overlay.color = Color(1.0, 0.0, 0.0, 0.5)
+	var timer := get_tree().create_timer(_damage_feedback_duration)
+	_damage_feedback_timer = timer
+	await timer.timeout
+	if _damage_feedback_timer == timer and is_instance_valid(_damage_overlay):
+		_damage_overlay.color = Color(1.0, 0.0, 0.0, 0.0)
+		_is_showing_damage_feedback = false
 
 
 ## Assign a new weapon at runtime.
