@@ -9,3 +9,9 @@ fire_rate = 0.15
 damage = 10.0
 muzzle_offset = Vector2(28, 0)
 projectile_scene = ExtResource("2_proj")
+
+[node name="MuzzleFlash" type="Polygon2D" parent="."]
+position = Vector2(28, 0)
+polygon = PackedVector2Array(0, -5, 5, 0, 0, 5, -5, 0)
+color = Color(1.0, 0.9, 0.4, 1.0)
+visible = false

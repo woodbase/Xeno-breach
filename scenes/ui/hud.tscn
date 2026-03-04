@@ -38,7 +38,7 @@ value = 100.0
 show_percentage = false
 
 [node name="WaveLabel" type="Label" parent="HealthContainer"]
-text = "Wave: 1"
+text = "Wave 1 / 5"
 theme_override_font_sizes/font_size = 14
 
 [node name="ScoreLabel" type="Label" parent="HealthContainer"]
@@ -57,6 +57,9 @@ theme_override_font_sizes/font_size = 24
 
 [node name="GameOverPanel" type="PanelContainer" parent="."]
 visible = false
+[node name="WaveBanner" type="Label" parent="."]
+visible = false
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -109,3 +112,13 @@ size_flags_horizontal = 3
 layout_mode = 2
 text = "Menu"
 size_flags_horizontal = 3
+offset_left = -200.0
+offset_top = -50.0
+offset_right = 200.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Wave 1"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 48

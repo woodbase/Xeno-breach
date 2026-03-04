@@ -13,8 +13,8 @@ func _ready() -> void:
 	start_button.pressed.connect(_on_start_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
 	start_button.grab_focus()
-	title_label.text = "Xeno Breach"
-	subtitle_label.text = "Twin-stick survival prototype"
+	title_label.text = "XENO BREACH // PROTOCOL"
+	subtitle_label.text = "Industrial containment deployment // stay sharp"
 
 
 func _unhandled_input(event: InputEvent) -> void:
