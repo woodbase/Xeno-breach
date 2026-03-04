@@ -17,17 +17,16 @@ size = Vector2(280, 40)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_obstacle_v"]
 size = Vector2(40, 220)
 
-[node name="TestLevel" type="Node2D"]
+[node name="Level02" type="Node2D"]
 script = ExtResource("1_level")
 debug_telemetry_enabled = true
-next_level_scene_path = "res://scenes/levels/level_02.tscn"
 
 [node name="Background" type="ColorRect" parent="."]
 offset_left = -640.0
 offset_top = -360.0
 offset_right = 640.0
 offset_bottom = 360.0
-color = Color(0.04, 0.04, 0.09, 1.0)
+color = Color(0.06, 0.03, 0.07, 1.0)
 z_index = -10
 
 [node name="Player" type="CharacterBody2D" parent="." instance=ExtResource("2_player")]
@@ -95,7 +94,7 @@ total_waves = 5
 enemies_per_wave = 5
 spawn_delay = 0.3
 between_wave_delay = 2.0
-wave_data_list = Array[WaveData]([ExtResource("6_wave_01"), ExtResource("7_wave_02"), ExtResource("8_wave_03"), ExtResource("9_wave_04"), ExtResource("10_wave_05")])
+wave_data_list = Array[WaveData]([ExtResource("8_wave_03"), ExtResource("9_wave_04"), ExtResource("10_wave_05"), ExtResource("10_wave_05"), ExtResource("10_wave_05")])
 min_spawn_distance_from_player = 250.0
 spawn_retry_count = 10
 
