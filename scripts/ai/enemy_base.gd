@@ -22,6 +22,7 @@ signal state_changed(new_state: State, old_state: State)
 
 @onready var health_component: HealthComponent = $HealthComponent
 @onready var _body: CanvasItem = $Body
+@onready var _collision_shape: CollisionShape2D = $CollisionShape2D
 
 var _current_state: State = State.IDLE
 var _target: Node2D = null
@@ -29,6 +30,7 @@ var _attack_timer: float = 0.0
 var _hit_flash_timer: Timer
 var _base_modulate: Color = Color.WHITE
 var _flash_color: Color = Color(1.8, 1.8, 1.8, 1.0)
+var _is_dying: bool = false
 
 
 func _ready() -> void:
@@ -38,6 +40,9 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if _is_dying:
+		velocity = Vector2.ZERO
+		return
 	_update_state()
 	_process_state(delta)
 	move_and_slide()
@@ -108,7 +113,22 @@ func _fire_projectile() -> void:
 
 
 func _on_health_died() -> void:
+	if _is_dying:
+		return
+	_is_dying = true
 	died.emit()
+	velocity = Vector2.ZERO
+	if _collision_shape != null:
+		_collision_shape.disabled = true
+	set_collision_layer(0)
+	set_collision_mask(0)
+	var fade_duration: float = 0.3
+	if _body != null:
+		var tween: Tween = create_tween()
+		tween.tween_property(_body, "modulate:a", 0.0, fade_duration)
+		await tween.finished
+	else:
+		await get_tree().create_timer(fade_duration).timeout
 	queue_free()
 
 
@@ -134,4 +154,6 @@ func _on_hit_flash_timeout() -> void:
 
 
 func _on_health_damaged(_amount: float) -> void:
+	if _is_dying:
+		return
 	play_hit_flash()
