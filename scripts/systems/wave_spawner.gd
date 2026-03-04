@@ -77,6 +77,7 @@ func _start_wave(index: int) -> void:
 
 	# Guard against double-triggering wave starts
 	if _wave_in_progress:
+		_starting_wave = false
 		return
 
 	_wave_in_progress = true
@@ -87,8 +88,10 @@ func _start_wave(index: int) -> void:
 
 
 func _spawn_wave_enemies() -> void:
+	var wave_spawn_delay: float = _get_wave_spawn_delay(_current_wave)
 	for i: int in _active_enemies:
-		await get_tree().create_timer(_get_wave_spawn_delay(_current_wave) * i).timeout
+		if i > 0:
+			await get_tree().create_timer(wave_spawn_delay).timeout
 		_spawn_single_enemy()
 
 
@@ -143,21 +146,18 @@ func _on_enemy_removed(killed: bool) -> void:
 	_active_enemies -= 1
 	if killed:
 		enemy_killed.emit()
-	if _active_enemies <= 0 and not _transitioning:
-		_transitioning = true
-		wave_completed.emit(_current_wave + 1)
-		_current_wave += 1
-		await get_tree().create_timer(between_wave_delay).timeout
-		_transitioning = false
-	if _active_enemies <= 0 and not _between_waves:
-		_between_waves = true
-	if _active_enemies <= 0:
-		_wave_in_progress = false
-		wave_completed.emit(_current_wave + 1)
-		_current_wave += 1
-		await get_tree().create_timer(between_wave_delay).timeout
-		_between_waves = false
-		_start_wave(_current_wave)
+	if _active_enemies > 0 or _between_waves:
+		return
+
+	_transitioning = true
+	_between_waves = true
+	_wave_in_progress = false
+	wave_completed.emit(_current_wave + 1)
+	_current_wave += 1
+	await get_tree().create_timer(between_wave_delay).timeout
+	_transitioning = false
+	_between_waves = false
+	_start_wave(_current_wave)
 
 
 func _get_total_waves() -> int:
@@ -247,4 +247,3 @@ func _is_far_from_all_players(pos: Vector2, active_players: Array[Node2D]) -> bo
 		if pos.distance_to(p.global_position) < min_spawn_distance_from_player:
 			return false
 	return true
-

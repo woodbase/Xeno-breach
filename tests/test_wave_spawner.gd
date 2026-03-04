@@ -20,6 +20,8 @@ func _run_all() -> void:
 	test_get_total_waves_public_accessor()
 	test_get_total_waves_falls_back_to_total_waves()
 	test_transitioning_guard_starts_false()
+	test_start_wave_guard_clears_starting_flag()
+	test_enemy_removed_advances_single_wave_step()
 
 
 func _assert(condition: bool, name: String) -> void:
@@ -117,3 +119,20 @@ func test_get_total_waves_falls_back_to_total_waves() -> void:
 func test_transitioning_guard_starts_false() -> void:
 	var spawner := WaveSpawner.new()
 	_assert(spawner.is_transitioning() == false, "is_transitioning() is false on a new WaveSpawner")
+
+
+func test_start_wave_guard_clears_starting_flag() -> void:
+	var spawner := WaveSpawner.new()
+	spawner._wave_in_progress = true
+	spawner._start_wave(0)
+	_assert(spawner._starting_wave == false, "_start_wave guard clears _starting_wave when wave is already active")
+
+
+func test_enemy_removed_advances_single_wave_step() -> void:
+	var spawner := WaveSpawner.new()
+	spawner.between_wave_delay = 0.0
+	spawner._active_enemies = 1
+	spawner._current_wave = 0
+	spawner._wave_in_progress = true
+	spawner._on_enemy_removed(true)
+	_assert(spawner._current_wave == 1, "_on_enemy_removed increments current wave once")
