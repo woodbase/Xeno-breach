@@ -38,7 +38,6 @@ func _ready() -> void:
 	health_component.damaged.connect(func(amount: float) -> void:
 		damaged.emit(amount)
 		play_damage_feedback()
-		SoundManager.play_sfx("player_hurt")
 	)
 	health_component.died.connect(_on_health_died)
 	health_component.invulnerability_changed.connect(_on_invulnerability_changed)
@@ -109,7 +108,6 @@ func set_weapon(weapon: BaseWeapon) -> void:
 
 func _on_health_died() -> void:
 	set_physics_process(false)
-	SoundManager.play_sfx("player_die")
 	died.emit()
 
 
