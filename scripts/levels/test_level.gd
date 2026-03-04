@@ -65,7 +65,6 @@ func _ready() -> void:
 	wave_spawner.enemy_spawned.connect(_on_enemy_spawned)
 
 	# Connect audio signals
-	player.fired.connect(_on_player_fired)
 	player.damaged.connect(_on_player_damaged_audio)
 
 	hud.set_score(_score)
@@ -75,7 +74,6 @@ func _ready() -> void:
 
 	# Start combat music and station ambience
 	AudioManager.play_music("combat_theme")
-	AudioManager.play_ambience("station_ambience")
 
 
 func _on_player_died() -> void:
@@ -226,15 +224,14 @@ func _start_ambient_bed() -> void:
 	if _ambient_player == null:
 		_ambient_player = AudioStreamPlayer.new()
 		_ambient_player.name = "AmbientBed"
-		_ambient_player.pause_mode = Node.PAUSE_MODE_PROCESS
+		_ambient_player.process_mode = Node.PROCESS_MODE_ALWAYS
 		_ambient_player.stream = AudioLibrary.get_ambient_loop()
 		_ambient_player.volume_db = -12.0
+		_ambient_player.bus = AudioManager.BUS_AMBIENCE
 		add_child(_ambient_player)
 	if _ambient_player.stream == null:
 		_ambient_player.stream = AudioLibrary.get_ambient_loop()
 	_ambient_player.play()
-func _on_player_fired(direction: Vector2) -> void:
-	AudioManager.play_sfx("weapon_fire", player.global_position)
 
 
 func _on_player_damaged_audio(amount: float) -> void:

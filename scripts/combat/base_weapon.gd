@@ -75,6 +75,8 @@ func _ensure_fire_audio() -> void:
 	_fire_audio.name = "FireAudio"
 	_fire_audio.stream = AudioLibrary.get_blaster_shot()
 	_fire_audio.volume_db = -4.0
+	_fire_audio.bus = AudioManager.BUS_SFX
+	_fire_audio.max_distance = 1000.0
 	add_child(_fire_audio)
 
 
