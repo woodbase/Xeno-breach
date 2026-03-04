@@ -41,6 +41,7 @@ func _ready() -> void:
 
 	# Bind HUD to player health
 	hud.connect_to_player(player)
+	hud.set_total_waves(wave_spawner.get_total_waves())
 
 	# Connect player death
 	player.died.connect(_on_player_died)
@@ -72,6 +73,7 @@ func _on_wave_started(wave_number: int) -> void:
 	_wave_damage_dealt = 0.0
 	_wave_kills = 0
 	hud.set_wave(wave_number)
+	hud.show_wave_banner(wave_number)
 	print("Wave %d started!" % wave_number)
 
 
