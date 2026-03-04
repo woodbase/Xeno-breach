@@ -36,6 +36,8 @@ var _wave_damage_dealt: float = 0.0
 var _wave_kills: int = 0
 var _run_finished: bool = false
 var _restarting: bool = false
+var _run_id: String = ""
+var _run_seed: int = 0
 var _current_wave: int = 1
 var _transitioning: bool = false
 var _alive_players: int = 1
@@ -43,6 +45,7 @@ var _ambient_player: AudioStreamPlayer = null
 
 
 func _ready() -> void:
+	_init_run_identity()
 	GameStateManager.change_state(GameStateManager.State.PLAYING)
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_start_ambient_bed()
@@ -129,10 +132,8 @@ func _on_wave_started(wave_number: int) -> void:
 	var total: int = wave_spawner.get_total_waves()
 	hud.set_wave(wave_number, total)
 	hud.show_wave_banner(wave_number, total)
-	hud.set_wave(wave_number, wave_spawner.get_total_waves())
-	hud.show_wave_banner(wave_number)
 	AudioManager.play_ui("wave_start")
-	print("Wave %d started!" % wave_number)
+	print("[Run %s] Wave %d started! (seed=%d)" % [_run_id, wave_number, _run_seed])
 
 
 func _on_wave_completed(wave_number: int) -> void:
@@ -140,7 +141,8 @@ func _on_wave_completed(wave_number: int) -> void:
 	_score += SCORE_WAVE_BONUS
 	hud.set_score(_score)
 	_log_wave_telemetry(wave_number)
-	print("Wave %d cleared!" % wave_number)
+	hud.show_wave_summary(wave_number, _score)
+	print("[Run %s] Wave %d cleared! Score=%d" % [_run_id, wave_number, _score])
 
 
 func _on_all_waves_completed() -> void:
@@ -211,8 +213,8 @@ func _log_wave_telemetry(wave_number: int) -> void:
 	var elapsed_sec: float = maxf(0.001, float(Time.get_ticks_msec() - _wave_started_at_ms) / 1000.0)
 	var kills_per_minute: float = float(_wave_kills) * 60.0 / elapsed_sec
 	print(
-		"[Telemetry] Wave %d | clear_time=%.2fs | damage_dealt=%.1f | damage_taken=%.1f | kills=%d | kills_per_min=%.2f"
-		% [wave_number, elapsed_sec, _wave_damage_dealt, _wave_damage_taken, _wave_kills, kills_per_minute]
+		"[Telemetry %s] Wave %d | clear_time=%.2fs | damage_dealt=%.1f | damage_taken=%.1f | kills=%d | kills_per_min=%.2f"
+		% [_run_id, wave_number, elapsed_sec, _wave_damage_dealt, _wave_damage_taken, _wave_kills, kills_per_minute]
 	)
 	var notes: Array[String] = []
 	if elapsed_sec < TELEMETRY_TARGET_CLEAR_TIME_MIN:
@@ -226,7 +228,7 @@ func _log_wave_telemetry(wave_number: int) -> void:
 	if _wave_damage_taken > TELEMETRY_TARGET_DAMAGE_TAKEN_MAX:
 		notes.append("high_damage_taken")
 	if not notes.is_empty():
-		print("[Telemetry] Wave %d balance_hints=%s" % [wave_number, ",".join(notes)])
+		print("[Telemetry %s] Wave %d balance_hints=%s" % [_run_id, wave_number, ",".join(notes)])
 
 
 func _restart_run() -> void:
@@ -271,3 +273,12 @@ func _start_ambient_bed() -> void:
 
 func _on_player_damaged_audio(amount: float) -> void:
 	AudioManager.play_sfx("player_hurt", player.global_position)
+
+
+func _init_run_identity() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	_run_seed = int(abs(rng.seed)) % 1000000000
+	_run_id = "run-%d" % _run_seed
+	seed(_run_seed)
+	print("[Run] id=%s seed=%d" % [_run_id, _run_seed])
