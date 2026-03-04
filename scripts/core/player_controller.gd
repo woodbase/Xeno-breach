@@ -27,9 +27,11 @@ signal died
 
 var _weapon: BaseWeapon = null
 var _fire_cooldown: float = 0.0
+var _normalized_bounds: Rect2
 
 
 func _ready() -> void:
+	_normalized_bounds = playfield_bounds.abs()
 	health_component.damaged.connect(func(amount: float) -> void: damaged.emit(amount))
 	health_component.died.connect(_on_health_died)
 	health_component.invulnerability_changed.connect(_on_invulnerability_changed)
@@ -43,7 +45,7 @@ func _physics_process(delta: float) -> void:
 	_handle_fire(delta)
 	move_and_slide()
 	if clamp_to_playfield:
-		global_position = global_position.clamp(playfield_bounds.position, playfield_bounds.end)
+		global_position = global_position.clamp(_normalized_bounds.position, _normalized_bounds.end)
 
 
 func _handle_movement(delta: float) -> void:

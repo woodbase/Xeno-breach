@@ -85,8 +85,12 @@ func _on_wave_completed(wave_number: int) -> void:
 
 func _on_all_waves_completed() -> void:
 	if not next_level_scene_path.is_empty():
-		_go_to_next_level()
-		return
+		var has_next_level := ResourceLoader.exists(next_level_scene_path)
+		if has_next_level:
+			_go_to_next_level()
+			return
+		else:
+			push_warning("Configured next_level_scene_path does not exist: %s" % next_level_scene_path)
 
 	_run_finished = true
 	GameStateManager.change_state(GameStateManager.State.VICTORY)
