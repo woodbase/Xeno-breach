@@ -59,7 +59,7 @@ func show_final_results(score: int, waves_survived: int) -> void:
 		_banner_tween.kill()
 	wave_banner.visible = false
 	result_label.text = (
-		"Run Over\nWave reached: %d\nScore: %d\n\n[LMB/Enter]  Retry\n[ESC]  Main Menu"
+		"Run Ended\nWaves cleared: %d\nScore: %d\n\n[LMB/Enter]  Retry\n[ESC]  Main Menu"
 		% [waves_survived, score]
 	)
 	result_label.visible = true
