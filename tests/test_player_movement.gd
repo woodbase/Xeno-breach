@@ -100,10 +100,11 @@ func test_clamp_normal_bounds_keeps_position_inside() -> void:
 	var bounds := Rect2(Vector2(-100.0, -100.0), Vector2(200.0, 200.0))
 	var outside_pos := Vector2(200.0, -200.0)
 	var result := _apply_clamp(outside_pos, bounds)
-	var normalized := bounds.abs()
-	_assert(result.x >= normalized.position.x and result.x <= normalized.end.x
-		and result.y >= normalized.position.y and result.y <= normalized.end.y,
-		"position outside normal bounds is clamped inside")
+	# Expected clamped position: each component is clamped to the nearest value
+	# within [-100.0, 100.0], giving (100.0, -100.0).
+	var expected := Vector2(100.0, -100.0)
+	_assert(_is_approx_equal(result, expected),
+		"position outside normal bounds is clamped to the boundary")
 
 
 func test_clamp_inverted_bounds_same_as_normalized() -> void:
