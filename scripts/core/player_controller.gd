@@ -43,7 +43,8 @@ func _physics_process(delta: float) -> void:
 	_handle_fire(delta)
 	move_and_slide()
 	if clamp_to_playfield:
-		global_position = global_position.clamp(playfield_bounds.position, playfield_bounds.end)
+		var bounds: Rect2 = playfield_bounds.abs()
+		global_position = global_position.clamp(bounds.position, bounds.end)
 
 
 func _handle_movement(delta: float) -> void:

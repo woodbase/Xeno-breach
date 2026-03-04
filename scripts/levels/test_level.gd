@@ -85,9 +85,11 @@ func _on_wave_completed(wave_number: int) -> void:
 
 
 func _on_all_waves_completed() -> void:
-	if not next_level_scene_path.is_empty():
+	if not next_level_scene_path.is_empty() and ResourceLoader.exists(next_level_scene_path):
 		_go_to_next_level()
 		return
+	elif not next_level_scene_path.is_empty() and not ResourceLoader.exists(next_level_scene_path):
+		push_warning("Configured next_level_scene_path does not exist: %s" % next_level_scene_path)
 
 	_run_finished = true
 	GameStateManager.change_state(GameStateManager.State.VICTORY)
@@ -162,7 +164,8 @@ func _log_wave_telemetry(wave_number: int) -> void:
 
 func _restart_run() -> void:
 	get_tree().paused = false
-	get_tree().change_scene_to_file(LEVEL_SCENE_PATH)
+	var current_scene_path: String = get_tree().current_scene.scene_file_path
+	get_tree().change_scene_to_file(current_scene_path)
 
 
 func _go_to_next_level() -> void:
