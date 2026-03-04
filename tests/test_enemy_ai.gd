@@ -14,6 +14,7 @@ func _run_all() -> void:
 	test_missing_target_stays_idle()
 	test_target_in_detection_range_switches_to_chase()
 	test_target_in_attack_range_switches_to_attack()
+	test_hit_flash_sets_and_resets_modulate()
 
 
 func _assert(condition: bool, name: String) -> void:
@@ -26,7 +27,8 @@ func _assert(condition: bool, name: String) -> void:
 
 
 func _make_enemy() -> EnemyBase:
-	var enemy := EnemyBase.new()
+	var scene: PackedScene = load("res://scenes/enemies/enemy_base.tscn")
+	var enemy := scene.instantiate() as EnemyBase
 	enemy.detection_range = 200.0
 	enemy.attack_range = 40.0
 	add_child(enemy)
@@ -75,3 +77,16 @@ func test_target_in_attack_range_switches_to_attack() -> void:
 	enemy.set_target(target)
 	enemy._update_state()
 	_assert(saw_attack, "enemy enters attack inside attack range")
+
+
+func test_hit_flash_sets_and_resets_modulate() -> void:
+	var enemy := _make_enemy()
+	var body := enemy.get_node("Body") as CanvasItem
+	var base_color: Color = body.modulate
+
+	enemy.health_component.take_damage(5.0)
+
+	_assert(body.modulate == enemy._flash_color, "hit flash applies flash color on damage")
+
+	enemy._on_hit_flash_timeout()
+	_assert(body.modulate == base_color, "hit flash timeout restores base modulate")
