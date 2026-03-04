@@ -72,7 +72,7 @@ func _on_wave_started(wave_number: int) -> void:
 	_wave_damage_taken = 0.0
 	_wave_damage_dealt = 0.0
 	_wave_kills = 0
-	hud.set_wave(wave_number, wave_spawner.total_waves)
+	hud.set_wave(wave_number, wave_spawner.get_total_waves())
 	hud.show_wave_banner(wave_number)
 	print("Wave %d started!" % wave_number)
 

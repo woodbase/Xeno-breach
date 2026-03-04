@@ -119,6 +119,12 @@ func _get_total_waves() -> int:
 	return total_waves
 
 
+## Get the actual number of waves that will be spawned.
+## Returns the size of wave_data_list if configured, otherwise total_waves.
+func get_total_waves() -> int:
+	return _get_total_waves()
+
+
 func _get_wave_enemy_count(index: int) -> int:
 	if index < wave_data_list.size():
 		return maxi(0, wave_data_list[index].enemy_count)
