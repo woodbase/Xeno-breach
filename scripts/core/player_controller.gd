@@ -17,6 +17,8 @@ signal died
 @export var move_speed: float = 300.0
 @export var acceleration: float = 1500.0
 @export var friction: float = 1200.0
+@export var clamp_to_playfield: bool = true
+@export var playfield_bounds: Rect2 = Rect2(Vector2(-620.0, -340.0), Vector2(1240.0, 680.0))
 
 ## NodePath to the active [BaseWeapon] child. Set in the inspector.
 @export var weapon_path: NodePath = NodePath("WeaponMount/BasicBlaster")
@@ -25,9 +27,11 @@ signal died
 
 var _weapon: BaseWeapon = null
 var _fire_cooldown: float = 0.0
+var _normalized_bounds: Rect2
 
 
 func _ready() -> void:
+	_normalized_bounds = playfield_bounds.abs()
 	health_component.damaged.connect(func(amount: float) -> void: damaged.emit(amount))
 	health_component.died.connect(_on_health_died)
 	health_component.invulnerability_changed.connect(_on_invulnerability_changed)
@@ -40,6 +44,8 @@ func _physics_process(delta: float) -> void:
 	_handle_aim()
 	_handle_fire(delta)
 	move_and_slide()
+	if clamp_to_playfield:
+		global_position = global_position.clamp(_normalized_bounds.position, _normalized_bounds.end)
 
 
 func _handle_movement(delta: float) -> void:

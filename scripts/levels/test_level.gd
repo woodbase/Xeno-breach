@@ -13,10 +13,10 @@ const TELEMETRY_TARGET_CLEAR_TIME_MAX: float = 40.0
 const TELEMETRY_TARGET_KILLS_PER_MIN_MIN: float = 10.0
 const TELEMETRY_TARGET_KILLS_PER_MIN_MAX: float = 35.0
 const TELEMETRY_TARGET_DAMAGE_TAKEN_MAX: float = 30.0
-const LEVEL_SCENE_PATH: String = "res://scenes/levels/test_level.tscn"
 const MAIN_MENU_SCENE_PATH: String = "res://scenes/ui/main_menu.tscn"
 
 @export var debug_telemetry_enabled: bool = false
+@export_file("*.tscn") var next_level_scene_path: String = ""
 
 var _score: int = 0
 var _waves_survived: int = 0
@@ -84,6 +84,14 @@ func _on_wave_completed(wave_number: int) -> void:
 
 
 func _on_all_waves_completed() -> void:
+	if not next_level_scene_path.is_empty():
+		var has_next_level := ResourceLoader.exists(next_level_scene_path)
+		if has_next_level:
+			_go_to_next_level()
+			return
+		else:
+			push_warning("Configured next_level_scene_path does not exist: %s" % next_level_scene_path)
+
 	_run_finished = true
 	GameStateManager.change_state(GameStateManager.State.VICTORY)
 	hud.show_final_results(_score, _waves_survived)
@@ -157,7 +165,13 @@ func _log_wave_telemetry(wave_number: int) -> void:
 
 func _restart_run() -> void:
 	get_tree().paused = false
-	get_tree().change_scene_to_file(LEVEL_SCENE_PATH)
+	get_tree().reload_current_scene()
+
+
+func _go_to_next_level() -> void:
+	get_tree().paused = false
+	GameStateManager.change_state(GameStateManager.State.PLAYING)
+	get_tree().change_scene_to_file(next_level_scene_path)
 
 
 func _return_to_main_menu() -> void:
