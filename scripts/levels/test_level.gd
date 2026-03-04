@@ -63,6 +63,13 @@ func _ready() -> void:
 	player.died.connect(_on_any_player_died)
 	player.damaged.connect(_on_player_damaged)
 
+	# Connect wave events before start() so the first wave_started signal is not missed.
+	wave_spawner.wave_started.connect(_on_wave_started)
+	wave_spawner.wave_completed.connect(_on_wave_completed)
+	wave_spawner.all_waves_completed.connect(_on_all_waves_completed)
+	wave_spawner.enemy_killed.connect(_on_enemy_killed)
+	wave_spawner.enemy_spawned.connect(_on_enemy_spawned)
+
 	# Spawn extra local co-op players (players 2–4 use gamepad slots 0, 1, 2).
 	wave_spawner.start(player)
 	var extra_count: int = CoopManager.player_count - 1
@@ -79,13 +86,6 @@ func _ready() -> void:
 			add_child(extra)
 			extra.died.connect(_on_any_player_died)
 			wave_spawner.add_coop_player(extra)
-
-	# Connect wave events
-	wave_spawner.wave_started.connect(_on_wave_started)
-	wave_spawner.wave_completed.connect(_on_wave_completed)
-	wave_spawner.all_waves_completed.connect(_on_all_waves_completed)
-	wave_spawner.enemy_killed.connect(_on_enemy_killed)
-	wave_spawner.enemy_spawned.connect(_on_enemy_spawned)
 
 	hud.set_score(_score)
 

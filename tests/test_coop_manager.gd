@@ -37,87 +37,90 @@ func _assert(condition: bool, name: String) -> void:
 		printerr("  [FAIL] %s" % name)
 
 
-func _make_coop() -> CoopManager:
-	var cm := CoopManager.new()
-	add_child(cm)
-	return cm
+func _get_clean_coop() -> Node:
+	# Disconnect any lingering signal connections from previous tests for isolation.
+	for conn: Dictionary in CoopManager.player_count_changed.get_connections():
+		CoopManager.player_count_changed.disconnect(conn["callable"])
+	# Reset the autoload singleton state.
+	CoopManager.player_count = 1
+	return CoopManager
 
 
 func test_default_player_count_is_one() -> void:
-	var cm := _make_coop()
+	var cm := _get_clean_coop()
 	_assert(cm.player_count == 1, "default player_count is 1")
 
 
 func test_player_count_clamps_to_max() -> void:
-	var cm := _make_coop()
+	var cm := _get_clean_coop()
 	cm.player_count = 99
 	_assert(cm.player_count == CoopManager.MAX_PLAYERS, "player_count clamped to MAX_PLAYERS")
 
 
 func test_player_count_clamps_to_min() -> void:
-	var cm := _make_coop()
+	var cm := _get_clean_coop()
 	cm.player_count = -5
 	_assert(cm.player_count == 1, "player_count clamped to minimum of 1")
 
 
 func test_single_player_enemy_count_multiplier_is_one() -> void:
-	var cm := _make_coop()
+	var cm := _get_clean_coop()
 	cm.player_count = 1
 	_assert(is_equal_approx(cm.get_enemy_count_multiplier(), 1.0),
 		"1 player: enemy count multiplier is 1.0")
 
 
 func test_two_player_enemy_count_multiplier() -> void:
-	var cm := _make_coop()
+	var cm := _get_clean_coop()
 	cm.player_count = 2
 	_assert(is_equal_approx(cm.get_enemy_count_multiplier(), 1.5),
 		"2 players: enemy count multiplier is 1.5")
 
 
 func test_three_player_enemy_count_multiplier() -> void:
-	var cm := _make_coop()
+	var cm := _get_clean_coop()
 	cm.player_count = 3
 	_assert(is_equal_approx(cm.get_enemy_count_multiplier(), 2.0),
 		"3 players: enemy count multiplier is 2.0")
 
 
 func test_four_player_enemy_count_multiplier() -> void:
-	var cm := _make_coop()
+	var cm := _get_clean_coop()
 	cm.player_count = 4
 	_assert(is_equal_approx(cm.get_enemy_count_multiplier(), 2.5),
 		"4 players: enemy count multiplier is 2.5")
 
 
 func test_single_player_health_multiplier_is_one() -> void:
-	var cm := _make_coop()
+	var cm := _get_clean_coop()
 	cm.player_count = 1
 	_assert(is_equal_approx(cm.get_enemy_health_multiplier(), 1.0),
 		"1 player: enemy health multiplier is 1.0")
 
 
 func test_two_player_health_multiplier() -> void:
-	var cm := _make_coop()
+	var cm := _get_clean_coop()
 	cm.player_count = 2
 	_assert(is_equal_approx(cm.get_enemy_health_multiplier(), 1.25),
 		"2 players: enemy health multiplier is 1.25")
 
 
 func test_three_player_health_multiplier() -> void:
-	var cm := _make_coop()
+	var cm := _get_clean_coop()
 	cm.player_count = 3
 	_assert(is_equal_approx(cm.get_enemy_health_multiplier(), 1.5),
 		"3 players: enemy health multiplier is 1.5")
 
 
 func test_four_player_health_multiplier() -> void:
-	var cm := _make_coop()
+	var cm := _get_clean_coop()
 	cm.player_count = 4
 	_assert(is_equal_approx(cm.get_enemy_health_multiplier(), 1.75),
 		"4 players: enemy health multiplier is 1.75")
 
 
 func test_player_count_changed_signal() -> void:
-	var cm := _make_coop()
+	var cm := _get_clean_coop()
 	var received: int = 0
 	cm.player_count_changed.connect(func(n: int) -> void: received = n)
 	cm.player_count = 3
@@ -125,7 +128,7 @@ func test_player_count_changed_signal() -> void:
 
 
 func test_setting_same_count_does_not_emit_signal() -> void:
-	var cm := _make_coop()
+	var cm := _get_clean_coop()
 	cm.player_count = 2
 	var signal_count: int = 0
 	cm.player_count_changed.connect(func(_n: int) -> void: signal_count += 1)

@@ -37,18 +37,13 @@ var _players: Array[Node2D] = []
 var _between_waves: bool = false
 var _spawning: bool = false
 var _transitioning: bool = false
+var _starting_wave: bool = false
+var _wave_in_progress: bool = false
 
 
 ## Returns true while a wave transition is in progress (between-wave delay).
 func is_transitioning() -> bool:
 	return _transitioning
-
-
-## Returns the total number of waves.
-func get_total_waves() -> int:
-	return _get_total_waves()
-var _starting_wave: bool = false
-var _wave_in_progress: bool = false
 
 
 ## Begin spawning waves, targeting [param player].
@@ -121,7 +116,7 @@ func _spawn_single_enemy() -> void:
 		return
 
 	enemy.global_position = point.global_position
-	var active_players: Array[Node2D] = _players.filter(func(p: Node2D) -> bool: return is_instance_valid(p))
+	var active_players: Array[Node2D] = _get_active_players()
 	if not active_players.is_empty():
 		enemy.set_target(active_players[randi() % active_players.size()])
 	elif _player != null:
@@ -219,10 +214,20 @@ func _pick_enemy_scene_from_pool(wave_data: WaveData) -> PackedScene:
 	return valid_scenes[randi() % valid_scenes.size()]
 
 
+## Returns players that are still valid and alive — used for targeting and spawn placement.
+func _get_active_players() -> Array[Node2D]:
+	return _players.filter(func(p: Node2D) -> bool:
+		if not is_instance_valid(p):
+			return false
+		var hc: HealthComponent = p.get_node_or_null("HealthComponent") as HealthComponent
+		return hc == null or hc.is_alive()
+	)
+
+
 func _select_spawn_point() -> Node2D:
 	if spawn_points.is_empty():
 		return null
-	var active_players: Array[Node2D] = _players.filter(func(p: Node2D) -> bool: return is_instance_valid(p))
+	var active_players: Array[Node2D] = _get_active_players()
 	if active_players.is_empty():
 		return spawn_points[randi() % spawn_points.size()]
 
@@ -243,6 +248,3 @@ func _is_far_from_all_players(pos: Vector2, active_players: Array[Node2D]) -> bo
 			return false
 	return true
 
-
-func get_total_waves() -> int:
-	return _get_total_waves()
