@@ -1,6 +1,8 @@
 ## Test level orchestration — wires up player, HUD, and wave spawner.
 extends Node2D
 
+const AudioLibrary = preload("res://scripts/systems/audio_library.gd")
+
 @onready var player: PlayerController = $Player
 @onready var hud: HUD = $HUD
 @onready var wave_spawner: WaveSpawner = $WaveSpawner
@@ -37,11 +39,13 @@ var _restarting: bool = false
 var _current_wave: int = 1
 var _transitioning: bool = false
 var _alive_players: int = 1
+var _ambient_player: AudioStreamPlayer = null
 
 
 func _ready() -> void:
 	GameStateManager.change_state(GameStateManager.State.PLAYING)
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_start_ambient_bed()
 
 	# Collect spawn points from scene tree
 	var points: Array[Node2D] = []
@@ -71,6 +75,12 @@ func _ready() -> void:
 	wave_spawner.enemy_spawned.connect(_on_enemy_spawned)
 
 	# Spawn extra local co-op players (players 2–4 use gamepad slots 0, 1, 2).
+	# Connect audio signals
+	player.damaged.connect(_on_player_damaged_audio)
+
+	hud.set_score(_score)
+
+	# Begin
 	wave_spawner.start(player)
 	var extra_count: int = CoopManager.player_count - 1
 	if extra_count > 0:
@@ -97,6 +107,17 @@ func _on_any_player_died() -> void:
 		GameStateManager.change_state(GameStateManager.State.GAME_OVER)
 		hud.show_final_results(_score, _current_wave)
 		print("GAME OVER")
+	# Start combat music and station ambience
+	AudioManager.play_music("combat_theme")
+
+
+func _on_player_died() -> void:
+	_run_finished = true
+	GameStateManager.change_state(GameStateManager.State.GAME_OVER)
+	hud.show_final_results(_score, _current_wave)
+	AudioManager.play_ui("game_over")
+	AudioManager.stop_music()
+	print("GAME OVER")
 
 
 func _on_wave_started(wave_number: int) -> void:
@@ -110,6 +131,7 @@ func _on_wave_started(wave_number: int) -> void:
 	hud.show_wave_banner(wave_number, total)
 	hud.set_wave(wave_number, wave_spawner.get_total_waves())
 	hud.show_wave_banner(wave_number)
+	AudioManager.play_ui("wave_start")
 	print("Wave %d started!" % wave_number)
 
 
@@ -133,6 +155,7 @@ func _on_all_waves_completed() -> void:
 	_run_finished = true
 	GameStateManager.change_state(GameStateManager.State.VICTORY)
 	hud.show_final_results(_score, _current_wave)
+	AudioManager.play_music("victory_theme")
 	print("VICTORY — all waves cleared!")
 
 
@@ -173,6 +196,9 @@ func _on_enemy_spawned(enemy: EnemyBase) -> void:
 	var health: HealthComponent = enemy.get_node_or_null("HealthComponent") as HealthComponent
 	if health != null:
 		health.damaged.connect(func(amount: float) -> void: _wave_damage_dealt += amount)
+		health.died.connect(func() -> void:
+			AudioManager.play_sfx("enemy_death", enemy.global_position)
+		)
 
 
 func _on_player_damaged(amount: float) -> void:
@@ -227,3 +253,21 @@ func _return_to_main_menu() -> void:
 	get_tree().paused = false
 	GameStateManager.change_state(GameStateManager.State.MAIN_MENU)
 	get_tree().change_scene_to_file(MAIN_MENU_SCENE_PATH)
+
+
+func _start_ambient_bed() -> void:
+	if _ambient_player == null:
+		_ambient_player = AudioStreamPlayer.new()
+		_ambient_player.name = "AmbientBed"
+		_ambient_player.process_mode = Node.PROCESS_MODE_ALWAYS
+		_ambient_player.stream = AudioLibrary.get_ambient_loop()
+		_ambient_player.volume_db = -12.0
+		_ambient_player.bus = AudioManager.BUS_AMBIENCE
+		add_child(_ambient_player)
+	if _ambient_player.stream == null:
+		_ambient_player.stream = AudioLibrary.get_ambient_loop()
+	_ambient_player.play()
+
+
+func _on_player_damaged_audio(amount: float) -> void:
+	AudioManager.play_sfx("player_hurt", player.global_position)

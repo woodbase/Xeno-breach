@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/core/player_controller.gd" id="1_player"]
 [ext_resource type="Script" path="res://scripts/core/health_component.gd" id="2_health"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/pulse_carbine.tscn" id="3_weapon"]
-[ext_resource type="Texture2D" path="res://assets/player/player_hk_stand.png" id="4_player_texture"]
+[ext_resource type="Texture2D" path="res://assets/player/player.png" id="4_player_texture"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_1"]
 radius = 14.0

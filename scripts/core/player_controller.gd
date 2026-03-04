@@ -38,6 +38,7 @@ var _damage_overlay: ColorRect = null
 
 func _ready() -> void:
 	_normalized_bounds = playfield_bounds.abs()
+	add_to_group("player")
 	health_component.damaged.connect(func(amount: float) -> void:
 		damaged.emit(amount)
 		play_damage_feedback()
