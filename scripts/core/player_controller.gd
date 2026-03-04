@@ -133,6 +133,9 @@ func set_weapon(weapon: BaseWeapon) -> void:
 
 func _on_health_died() -> void:
 	set_physics_process(false)
+	if is_instance_valid(_damage_overlay):
+		_damage_overlay.color = Color(1.0, 0.0, 0.0, 0.0)
+	_damage_feedback_timer = null
 	died.emit()
 
 
