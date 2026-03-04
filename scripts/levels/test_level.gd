@@ -64,16 +64,26 @@ func _ready() -> void:
 	wave_spawner.enemy_killed.connect(_on_enemy_killed)
 	wave_spawner.enemy_spawned.connect(_on_enemy_spawned)
 
+	# Connect audio signals
+	player.fired.connect(_on_player_fired)
+	player.damaged.connect(_on_player_damaged_audio)
+
 	hud.set_score(_score)
 
 	# Begin
 	wave_spawner.start(player)
+
+	# Start combat music and station ambience
+	AudioManager.play_music("combat_theme")
+	AudioManager.play_ambience("station_ambience")
 
 
 func _on_player_died() -> void:
 	_run_finished = true
 	GameStateManager.change_state(GameStateManager.State.GAME_OVER)
 	hud.show_final_results(_score, _current_wave)
+	AudioManager.play_ui("game_over")
+	AudioManager.stop_music()
 	print("GAME OVER")
 
 
@@ -88,6 +98,7 @@ func _on_wave_started(wave_number: int) -> void:
 	hud.show_wave_banner(wave_number, total)
 	hud.set_wave(wave_number, wave_spawner.get_total_waves())
 	hud.show_wave_banner(wave_number)
+	AudioManager.play_ui("wave_start")
 	print("Wave %d started!" % wave_number)
 
 
@@ -111,6 +122,7 @@ func _on_all_waves_completed() -> void:
 	_run_finished = true
 	GameStateManager.change_state(GameStateManager.State.VICTORY)
 	hud.show_final_results(_score, _current_wave)
+	AudioManager.play_music("victory_theme")
 	print("VICTORY — all waves cleared!")
 
 
@@ -151,6 +163,9 @@ func _on_enemy_spawned(enemy: EnemyBase) -> void:
 	var health: HealthComponent = enemy.get_node_or_null("HealthComponent") as HealthComponent
 	if health != null:
 		health.damaged.connect(func(amount: float) -> void: _wave_damage_dealt += amount)
+		health.died.connect(func() -> void:
+			AudioManager.play_sfx("enemy_death", enemy.global_position)
+		)
 
 
 func _on_player_damaged(amount: float) -> void:
@@ -218,3 +233,9 @@ func _start_ambient_bed() -> void:
 	if _ambient_player.stream == null:
 		_ambient_player.stream = AudioLibrary.get_ambient_loop()
 	_ambient_player.play()
+func _on_player_fired(direction: Vector2) -> void:
+	AudioManager.play_sfx("weapon_fire", player.global_position)
+
+
+func _on_player_damaged_audio(amount: float) -> void:
+	AudioManager.play_sfx("player_hurt", player.global_position)

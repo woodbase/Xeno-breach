@@ -62,6 +62,9 @@ func _update_state() -> void:
 			_current_state = State.IDLE
 	if old_state != _current_state:
 		state_changed.emit(_current_state, old_state)
+		# Play alert sound when entering chase state
+		if old_state == State.IDLE and _current_state == State.CHASE:
+			AudioManager.play_sfx("enemy_alert", global_position)
 
 
 func _process_state(delta: float) -> void:
@@ -88,6 +91,7 @@ func set_target(target: Node2D) -> void:
 func _do_attack() -> void:
 	if _target == null:
 		return
+	AudioManager.play_sfx("enemy_attack", global_position)
 	if projectile_scene != null:
 		_fire_projectile()
 		return
