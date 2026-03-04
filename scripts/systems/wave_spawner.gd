@@ -34,12 +34,14 @@ var _current_wave: int = 0
 var _active_enemies: int = 0
 var _player: Node2D = null
 var _spawning: bool = false
+var _wave_in_progress: bool = false
 
 
 ## Begin spawning waves, targeting [param player].
 func start(player: Node2D) -> void:
 	_player = player
 	_current_wave = 0
+	_wave_in_progress = false
 	_start_wave(_current_wave)
 
 
@@ -48,6 +50,11 @@ func _start_wave(index: int) -> void:
 		all_waves_completed.emit()
 		return
 
+	# Guard against double-triggering wave starts
+	if _wave_in_progress:
+		return
+
+	_wave_in_progress = true
 	wave_started.emit(index + 1)
 	_active_enemies = _get_wave_enemy_count(index)
 	_spawn_wave_enemies()
@@ -99,6 +106,7 @@ func _on_enemy_removed(killed: bool) -> void:
 	if killed:
 		enemy_killed.emit()
 	if _active_enemies <= 0:
+		_wave_in_progress = false
 		wave_completed.emit(_current_wave + 1)
 		_current_wave += 1
 		await get_tree().create_timer(between_wave_delay).timeout

@@ -25,6 +25,7 @@ var _wave_damage_taken: float = 0.0
 var _wave_damage_dealt: float = 0.0
 var _wave_kills: int = 0
 var _run_finished: bool = false
+var _transitioning: bool = false
 
 
 func _ready() -> void:
@@ -71,7 +72,8 @@ func _on_wave_started(wave_number: int) -> void:
 	_wave_damage_taken = 0.0
 	_wave_damage_dealt = 0.0
 	_wave_kills = 0
-	hud.set_wave(wave_number)
+	hud.set_wave(wave_number, wave_spawner.total_waves)
+	hud.show_wave_banner(wave_number)
 	print("Wave %d started!" % wave_number)
 
 
@@ -99,7 +101,7 @@ func _on_all_waves_completed() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _run_finished:
+	if _run_finished and not _transitioning:
 		if event.is_action_pressed("fire") or event.is_action_pressed("ui_accept"):
 			_restart_run()
 			get_viewport().set_input_as_handled()
@@ -164,17 +166,26 @@ func _log_wave_telemetry(wave_number: int) -> void:
 
 
 func _restart_run() -> void:
+	if _transitioning:
+		return
+	_transitioning = true
 	get_tree().paused = false
 	get_tree().reload_current_scene()
 
 
 func _go_to_next_level() -> void:
+	if _transitioning:
+		return
+	_transitioning = true
 	get_tree().paused = false
 	GameStateManager.change_state(GameStateManager.State.PLAYING)
 	get_tree().change_scene_to_file(next_level_scene_path)
 
 
 func _return_to_main_menu() -> void:
+	if _transitioning:
+		return
+	_transitioning = true
 	get_tree().paused = false
 	GameStateManager.change_state(GameStateManager.State.MAIN_MENU)
 	get_tree().change_scene_to_file(MAIN_MENU_SCENE_PATH)
