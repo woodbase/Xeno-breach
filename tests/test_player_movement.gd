@@ -85,9 +85,9 @@ func test_zero_input_does_not_change_direction() -> void:
 # ---------------------------------------------------------------------------
 # Playfield clamping tests
 #
-# These tests validate the clamping logic used in PlayerController directly:
-#   var bounds := playfield_bounds.abs()
-#   position = position.clamp(bounds.position, bounds.end)
+# These tests validate the clamping math used by PlayerController:
+#   _normalized_bounds = playfield_bounds.abs()  # cached in _ready()
+#   global_position = global_position.clamp(_normalized_bounds.position, _normalized_bounds.end)
 # ---------------------------------------------------------------------------
 
 func _apply_clamp(pos: Vector2, bounds: Rect2) -> Vector2:
