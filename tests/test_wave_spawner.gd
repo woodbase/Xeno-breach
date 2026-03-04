@@ -18,6 +18,7 @@ func _run_all() -> void:
 	test_wave_enemy_scene_override_uses_wave_data_scene()
 	test_wave_enemy_scene_missing_override_falls_back()
 	test_get_total_waves_public_accessor()
+	test_get_total_waves_falls_back_to_total_waves()
 	test_transitioning_guard_starts_false()
 
 
@@ -103,6 +104,13 @@ func test_get_total_waves_public_accessor() -> void:
 	var spawner := WaveSpawner.new()
 	spawner.wave_data_list = [_make_wave(3, 0.2), _make_wave(4, 0.3), _make_wave(2, 0.4)]
 	_assert(spawner.get_total_waves() == 3, "get_total_waves() returns wave_data_list size when list is set")
+
+
+func test_get_total_waves_falls_back_to_total_waves() -> void:
+	var spawner := WaveSpawner.new()
+	spawner.total_waves = 5
+	spawner.wave_data_list = []
+	_assert(spawner.get_total_waves() == 5, "get_total_waves() falls back to total_waves when wave_data_list is empty")
 
 
 func test_transitioning_guard_starts_false() -> void:
