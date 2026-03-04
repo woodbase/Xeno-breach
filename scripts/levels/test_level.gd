@@ -25,6 +25,7 @@ var _wave_damage_taken: float = 0.0
 var _wave_damage_dealt: float = 0.0
 var _wave_kills: int = 0
 var _run_finished: bool = false
+var _restarting: bool = false
 var _current_wave: int = 1
 var _transitioning: bool = false
 
@@ -78,6 +79,9 @@ func _on_wave_started(wave_number: int) -> void:
 	_wave_damage_taken = 0.0
 	_wave_damage_dealt = 0.0
 	_wave_kills = 0
+	var total: int = wave_spawner.get_total_waves()
+	hud.set_wave(wave_number, total)
+	hud.show_wave_banner(wave_number, total)
 	hud.set_wave(wave_number, wave_spawner.get_total_waves())
 	hud.show_wave_banner(wave_number)
 	print("Wave %d started!" % wave_number)
@@ -109,15 +113,17 @@ func _on_all_waves_completed() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if _run_finished and not _transitioning:
 		if event.is_action_pressed("fire") or event.is_action_pressed("ui_accept"):
+			_restarting = true
 			_restart_run()
 			get_viewport().set_input_as_handled()
 			return
 		if event.is_action_pressed("pause"):
+			_restarting = true
 			_return_to_main_menu()
 			get_viewport().set_input_as_handled()
 			return
 
-	if event.is_action_pressed("pause"):
+	if not _run_finished and event.is_action_pressed("pause"):
 		_toggle_pause()
 		get_viewport().set_input_as_handled()
 
