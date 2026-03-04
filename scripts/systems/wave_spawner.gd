@@ -33,6 +33,7 @@ var spawn_points: Array[Node2D] = []
 var _current_wave: int = 0
 var _active_enemies: int = 0
 var _player: Node2D = null
+var _between_waves: bool = false
 var _spawning: bool = false
 var _transitioning: bool = false
 
@@ -45,6 +46,8 @@ func is_transitioning() -> bool:
 ## Returns the total number of waves.
 func get_total_waves() -> int:
 	return _get_total_waves()
+var _starting_wave: bool = false
+var _wave_in_progress: bool = false
 
 
 ## Begin spawning waves, targeting [param player].
@@ -52,16 +55,30 @@ func start(player: Node2D) -> void:
 	_player = player
 	_current_wave = 0
 	_transitioning = false
+	_between_waves = false
+	_active_enemies = 0
+	_starting_wave = false
+	_wave_in_progress = false
 	_start_wave(_current_wave)
 
 
 func _start_wave(index: int) -> void:
+	if _starting_wave:
+		return
+	_starting_wave = true
 	if index >= _get_total_waves():
 		all_waves_completed.emit()
+		_starting_wave = false
 		return
 
+	# Guard against double-triggering wave starts
+	if _wave_in_progress:
+		return
+
+	_wave_in_progress = true
 	wave_started.emit(index + 1)
 	_active_enemies = _get_wave_enemy_count(index)
+	_starting_wave = false
 	_spawn_wave_enemies()
 
 
@@ -116,6 +133,14 @@ func _on_enemy_removed(killed: bool) -> void:
 		_current_wave += 1
 		await get_tree().create_timer(between_wave_delay).timeout
 		_transitioning = false
+	if _active_enemies <= 0 and not _between_waves:
+		_between_waves = true
+	if _active_enemies <= 0:
+		_wave_in_progress = false
+		wave_completed.emit(_current_wave + 1)
+		_current_wave += 1
+		await get_tree().create_timer(between_wave_delay).timeout
+		_between_waves = false
 		_start_wave(_current_wave)
 
 
@@ -123,6 +148,13 @@ func _get_total_waves() -> int:
 	if not wave_data_list.is_empty():
 		return wave_data_list.size()
 	return total_waves
+
+
+## Returns the total number of waves for this run (public accessor).
+## Get the actual number of waves that will be spawned.
+## Returns the size of wave_data_list if configured, otherwise total_waves.
+func get_total_waves() -> int:
+	return _get_total_waves()
 
 
 func _get_wave_enemy_count(index: int) -> int:
@@ -179,3 +211,7 @@ func _select_spawn_point() -> Node2D:
 		if candidate.global_position.distance_to(_player.global_position) >= min_spawn_distance_from_player:
 			return candidate
 	return null
+
+
+func get_total_waves() -> int:
+	return _get_total_waves()
