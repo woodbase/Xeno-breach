@@ -166,7 +166,15 @@ func _log_wave_telemetry(wave_number: int) -> void:
 
 func _restart_run() -> void:
 	get_tree().paused = false
-	var current_scene_path: String = get_tree().current_scene.scene_file_path
+	var current_scene: Node = get_tree().current_scene
+	if current_scene == null:
+		push_warning("Cannot restart run: current_scene is null.")
+		return
+	var current_scene_path: String = current_scene.scene_file_path
+	if current_scene_path == "":
+		push_warning("Cannot restart run: current scene has empty scene_file_path; reloading current scene instead.")
+		get_tree().reload_current_scene()
+		return
 	get_tree().change_scene_to_file(current_scene_path)
 
 
