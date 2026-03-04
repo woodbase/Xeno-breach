@@ -58,6 +58,9 @@ func _on_body_entered(body: Node) -> void:
 	if health != null:
 		health.take_damage(damage)
 		SoundManager.play_sfx("impact")
+		AudioManager.play_sfx("impact_body", global_position)
+	else:
+		AudioManager.play_sfx("impact_wall", global_position)
 	_spawn_impact()
 	_despawn()
 

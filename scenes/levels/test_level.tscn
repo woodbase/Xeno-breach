@@ -10,7 +10,7 @@
 [ext_resource type="Resource" path="res://data/waves/wave_03.tres" id="8_wave_03"]
 [ext_resource type="Resource" path="res://data/waves/wave_04.tres" id="9_wave_04"]
 [ext_resource type="Resource" path="res://data/waves/wave_05.tres" id="10_wave_05"]
-[ext_resource type="Texture2D" path="res://assets/environment/sewage/Wall Tiles.png" id="11_floor_texture"]
+[ext_resource type="Texture2D" path="res://assets/environment/space_station.png" id="11_background_texture"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_obstacle_h"]
 size = Vector2(280, 40)
@@ -28,7 +28,7 @@ offset_left = -640.0
 offset_top = -360.0
 offset_right = 640.0
 offset_bottom = 360.0
-texture = ExtResource("11_floor_texture")
+texture = ExtResource("11_background_texture")
 stretch_mode = 2
 modulate = Color(0.26, 0.26, 0.34, 0.72)
 z_index = -10
