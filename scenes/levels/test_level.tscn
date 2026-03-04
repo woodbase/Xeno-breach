@@ -28,7 +28,7 @@ offset_top = -360.0
 offset_right = 640.0
 offset_bottom = 360.0
 texture = ExtResource("11_floor_texture")
-stretch_mode = 1
+stretch_mode = 2
 modulate = Color(0.26, 0.26, 0.34, 0.72)
 z_index = -10
 
