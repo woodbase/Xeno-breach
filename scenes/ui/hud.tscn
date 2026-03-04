@@ -39,3 +39,13 @@ offset_bottom = 420.0
 text = "Run complete"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 24
+
+[node name="DamageOverlay" type="ColorRect" parent="."]
+mouse_filter = 2
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+color = Color(1, 0, 0, 0)
