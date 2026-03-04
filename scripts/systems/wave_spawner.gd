@@ -40,6 +40,7 @@ var _spawning: bool = false
 func start(player: Node2D) -> void:
 	_player = player
 	_current_wave = 0
+	_spawning = false
 	_start_wave(_current_wave)
 
 
@@ -98,10 +99,12 @@ func _on_enemy_removed(killed: bool) -> void:
 	_active_enemies -= 1
 	if killed:
 		enemy_killed.emit()
-	if _active_enemies <= 0:
+	if _active_enemies <= 0 and not _spawning:
+		_spawning = true
 		wave_completed.emit(_current_wave + 1)
 		_current_wave += 1
 		await get_tree().create_timer(between_wave_delay).timeout
+		_spawning = false
 		_start_wave(_current_wave)
 
 
@@ -109,6 +112,11 @@ func _get_total_waves() -> int:
 	if not wave_data_list.is_empty():
 		return wave_data_list.size()
 	return total_waves
+
+
+## Returns the total number of waves for this run (public accessor).
+func get_total_waves() -> int:
+	return _get_total_waves()
 
 
 func _get_wave_enemy_count(index: int) -> int:
