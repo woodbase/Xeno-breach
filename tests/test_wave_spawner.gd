@@ -17,6 +17,7 @@ func _run_all() -> void:
 	test_missing_spawn_point_returns_null()
 	test_wave_enemy_scene_override_uses_wave_data_scene()
 	test_wave_enemy_scene_missing_override_falls_back()
+	test_wave_enemy_scene_pool_selects_from_pool()
 	test_get_total_waves_public_accessor()
 	test_get_total_waves_falls_back_to_total_waves()
 	test_transitioning_guard_starts_false()
@@ -101,6 +102,20 @@ func test_wave_enemy_scene_missing_override_falls_back() -> void:
 	spawner.wave_data_list = [wave]
 
 	_assert(spawner._get_wave_enemy_scene(0) == fallback_enemy_scene, "fallback enemy scene is used when wave enemy_scene is null")
+
+
+func test_wave_enemy_scene_pool_selects_from_pool() -> void:
+	var spawner := WaveSpawner.new()
+	var base_enemy_scene: PackedScene = load("res://scenes/enemies/enemy_base.tscn")
+	var striker_enemy_scene: PackedScene = load("res://scenes/enemies/enemy_striker.tscn")
+
+	var wave := _make_wave(6, 0.3)
+	wave.enemy_scene_pool = [base_enemy_scene, striker_enemy_scene]
+	spawner.wave_data_list = [wave]
+
+	var selected := spawner._get_wave_enemy_scene(0)
+	_assert(selected == base_enemy_scene or selected == striker_enemy_scene,
+		"enemy_scene_pool returns one of the configured scenes when set")
 
 
 func test_get_total_waves_public_accessor() -> void:

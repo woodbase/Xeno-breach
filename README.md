@@ -70,6 +70,10 @@ See [`docs/architecture.md`](docs/architecture.md) for the full system design.
 2. Run the project (starts at `scenes/ui/main_menu.tscn`)
 3. Start a run and survive five waves of enemies
 
+## QA / Pre-merge
+
+Follow `docs/pre_merge_checklist.md` for the quick smoke and telemetry checks before merging changes.
+
 ---
 
 ## Design Pillars
@@ -81,4 +85,3 @@ See [`docs/architecture.md`](docs/architecture.md) for the full system design.
 5. Replayable wave-based structure
 6. Designed for future co-op
 7. Performance-conscious (PC first, mobile-ready)
-

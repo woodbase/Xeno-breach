@@ -99,7 +99,7 @@ enemies_per_wave = 5
 spawn_delay = 0.3
 between_wave_delay = 2.0
 wave_data_list = Array[WaveData]([ExtResource("6_wave_01"), ExtResource("7_wave_02"), ExtResource("8_wave_03"), ExtResource("9_wave_04"), ExtResource("10_wave_05")])
-min_spawn_distance_from_player = 250.0
+min_spawn_distance_from_player = 280.0
 spawn_retry_count = 10
 
 [node name="HUD" type="CanvasLayer" parent="." instance=ExtResource("3_hud")]
