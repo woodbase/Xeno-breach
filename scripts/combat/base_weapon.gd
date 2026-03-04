@@ -8,6 +8,8 @@
 class_name BaseWeapon
 extends Node2D
 
+const AudioLibrary = preload("res://scripts/systems/audio_library.gd")
+
 @export var fire_rate: float = 0.2
 @export var damage: float = 10.0
 @export var projectile_scene: PackedScene
@@ -18,12 +20,14 @@ const MUZZLE_FLASH_DURATION: float = 0.075
 
 var _muzzle_flash: CanvasItem = null
 var _flash_timer: float = 0.0
+var _fire_audio: AudioStreamPlayer2D = null
 
 
 func _ready() -> void:
 	_muzzle_flash = get_node_or_null("MuzzleFlash") as CanvasItem
 	if _muzzle_flash != null:
 		_muzzle_flash.visible = false
+	_ensure_fire_audio()
 
 
 func _process(delta: float) -> void:
@@ -54,6 +58,7 @@ func fire(direction: Vector2) -> void:
 		level.add_child(projectile)
 
 	_show_muzzle_flash()
+	_play_fire_audio()
 
 
 func _show_muzzle_flash() -> void:
@@ -61,3 +66,22 @@ func _show_muzzle_flash() -> void:
 		return
 	_muzzle_flash.visible = true
 	_flash_timer = MUZZLE_FLASH_DURATION
+
+
+func _ensure_fire_audio() -> void:
+	if _fire_audio != null:
+		return
+	_fire_audio = AudioStreamPlayer2D.new()
+	_fire_audio.name = "FireAudio"
+	_fire_audio.stream = AudioLibrary.get_blaster_shot()
+	_fire_audio.volume_db = -4.0
+	add_child(_fire_audio)
+
+
+func _play_fire_audio() -> void:
+	if _fire_audio == null:
+		return
+	_fire_audio.stop()
+	if _fire_audio.stream == null:
+		_fire_audio.stream = AudioLibrary.get_blaster_shot()
+	_fire_audio.play()

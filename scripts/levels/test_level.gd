@@ -1,6 +1,8 @@
 ## Test level orchestration — wires up player, HUD, and wave spawner.
 extends Node2D
 
+const AudioLibrary = preload("res://scripts/systems/audio_library.gd")
+
 @onready var player: PlayerController = $Player
 @onready var hud: HUD = $HUD
 @onready var wave_spawner: WaveSpawner = $WaveSpawner
@@ -28,11 +30,13 @@ var _run_finished: bool = false
 var _restarting: bool = false
 var _current_wave: int = 1
 var _transitioning: bool = false
+var _ambient_player: AudioStreamPlayer = null
 
 
 func _ready() -> void:
 	GameStateManager.change_state(GameStateManager.State.PLAYING)
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_start_ambient_bed()
 
 	# Collect spawn points from scene tree
 	var points: Array[Node2D] = []
@@ -201,3 +205,16 @@ func _return_to_main_menu() -> void:
 	get_tree().paused = false
 	GameStateManager.change_state(GameStateManager.State.MAIN_MENU)
 	get_tree().change_scene_to_file(MAIN_MENU_SCENE_PATH)
+
+
+func _start_ambient_bed() -> void:
+	if _ambient_player == null:
+		_ambient_player = AudioStreamPlayer.new()
+		_ambient_player.name = "AmbientBed"
+		_ambient_player.pause_mode = Node.PAUSE_MODE_PROCESS
+		_ambient_player.stream = AudioLibrary.get_ambient_loop()
+		_ambient_player.volume_db = -12.0
+		add_child(_ambient_player)
+	if _ambient_player.stream == null:
+		_ambient_player.stream = AudioLibrary.get_ambient_loop()
+	_ambient_player.play()
