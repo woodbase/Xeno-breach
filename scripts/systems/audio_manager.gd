@@ -17,6 +17,8 @@ var sfx_players: Array[AudioStreamPlayer2D] = []
 var ui_player: AudioStreamPlayer
 var music_player: AudioStreamPlayer
 var ambience_player: AudioStreamPlayer
+var music_loop_enabled: bool = false
+var ambience_loop_enabled: bool = false
 
 ## Current music track
 var current_music: AudioStream = null
@@ -67,11 +69,13 @@ func _setup_audio_players() -> void:
 	# Create music player (non-positional, looping)
 	music_player = AudioStreamPlayer.new()
 	music_player.bus = BUS_MUSIC
+	music_player.finished.connect(_on_music_finished)
 	add_child(music_player)
 
 	# Create ambience player (non-positional, looping)
 	ambience_player = AudioStreamPlayer.new()
 	ambience_player.bus = BUS_AMBIENCE
+	ambience_player.finished.connect(_on_ambience_finished)
 	add_child(ambience_player)
 
 
@@ -165,6 +169,7 @@ func play_music(music_name: String, fade_duration: float = 1.0) -> void:
 	if music_player.playing:
 		music_player.stop()
 
+	music_loop_enabled = true
 	music_player.stream = stream
 	music_player.play()
 
@@ -173,6 +178,7 @@ func play_music(music_name: String, fade_duration: float = 1.0) -> void:
 func stop_music(fade_duration: float = 1.0) -> void:
 	if music_player.playing:
 		music_player.stop()
+	music_loop_enabled = false
 	current_music = null
 
 
@@ -190,6 +196,7 @@ func play_ambience(ambience_name: String) -> void:
 	if stream == null:
 		return
 
+	ambience_loop_enabled = true
 	ambience_player.stream = stream
 	ambience_player.play()
 
@@ -198,6 +205,17 @@ func play_ambience(ambience_name: String) -> void:
 func stop_ambience() -> void:
 	if ambience_player.playing:
 		ambience_player.stop()
+	ambience_loop_enabled = false
+
+
+func _on_music_finished() -> void:
+	if music_loop_enabled and music_player.stream != null:
+		music_player.play()
+
+
+func _on_ambience_finished() -> void:
+	if ambience_loop_enabled and ambience_player.stream != null:
+		ambience_player.play()
 
 
 ## Set volume for a specific audio bus (0.0 to 1.0)
