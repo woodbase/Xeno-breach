@@ -1,6 +1,7 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/test_level.gd" id="1_level"]
+[ext_resource type="Script" path="res://scripts/levels/placeholder_tilemap.gd" id="12_tilemap_script"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="3_hud"]
 [ext_resource type="Script" path="res://scripts/systems/wave_spawner.gd" id="4_spawner"]
@@ -32,6 +33,21 @@ texture = ExtResource("11_background_texture")
 stretch_mode = 2
 modulate = Color(0.26, 0.26, 0.34, 0.72)
 z_index = -10
+
+[node name="TileMap" type="TileMap" parent="."]
+script = ExtResource("12_tilemap_script")
+z_index = -9
+
+[node name="PlacedEnemies" type="Node2D" parent="."]
+
+[node name="EnemyA" parent="PlacedEnemies" instance=ExtResource("5_enemy")]
+position = Vector2(-320, 20)
+
+[node name="EnemyB" parent="PlacedEnemies" instance=ExtResource("5_enemy")]
+position = Vector2(340, -10)
+
+[node name="EnemyC" parent="PlacedEnemies" instance=ExtResource("5_enemy")]
+position = Vector2(0, 220)
 
 [node name="Player" type="CharacterBody2D" parent="." instance=ExtResource("2_player")]
 position = Vector2(0, 0)

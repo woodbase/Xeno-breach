@@ -7,6 +7,7 @@ const AudioLibrary = preload("res://scripts/systems/audio_library.gd")
 @onready var hud: HUD = $HUD
 @onready var wave_spawner: WaveSpawner = $WaveSpawner
 @onready var spawn_points_container: Node2D = $SpawnPoints
+@onready var placed_enemies_container: Node2D = get_node_or_null("PlacedEnemies") as Node2D
 
 const SCORE_PER_KILL: int = 100
 const SCORE_WAVE_BONUS: int = 250
@@ -76,6 +77,7 @@ func _ready() -> void:
 	wave_spawner.all_waves_completed.connect(_on_all_waves_completed)
 	wave_spawner.enemy_killed.connect(_on_enemy_killed)
 	wave_spawner.enemy_spawned.connect(_on_enemy_spawned)
+	_bind_placed_enemies()
 
 	# Spawn extra local co-op players (players 2–4 use gamepad slots 0, 1, 2).
 	# Connect audio signals
@@ -101,6 +103,17 @@ func _ready() -> void:
 			wave_spawner.add_coop_player(extra)
 
 	hud.set_score(_score)
+
+
+func _bind_placed_enemies() -> void:
+	if placed_enemies_container == null:
+		return
+	for child: Node in placed_enemies_container.get_children():
+		var enemy := child as EnemyBase
+		if enemy == null:
+			continue
+		enemy.died.connect(_on_enemy_killed)
+		_on_enemy_spawned(enemy)
 
 
 func _on_any_player_died() -> void:

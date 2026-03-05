@@ -1,6 +1,7 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/test_level.gd" id="1_level"]
+[ext_resource type="Script" path="res://scripts/levels/placeholder_tilemap.gd" id="11_tilemap_script"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="3_hud"]
 [ext_resource type="Script" path="res://scripts/systems/wave_spawner.gd" id="4_spawner"]
@@ -26,6 +27,11 @@ offset_right = 640.0
 offset_bottom = 360.0
 color = Color(0.06, 0.03, 0.07, 1.0)
 z_index = -10
+
+[node name="TileMap" type="TileMap" parent="."]
+script = ExtResource("11_tilemap_script")
+z_index = -9
+
 
 [node name="Player" type="CharacterBody2D" parent="." instance=ExtResource("2_player")]
 position = Vector2(0, 0)
