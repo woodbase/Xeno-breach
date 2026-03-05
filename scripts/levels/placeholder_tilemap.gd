@@ -2,7 +2,7 @@
 class_name PlaceholderTilemap
 extends TileMap
 
-@export var source_texture: Texture2D
+@export var source_texture: Texture2D = null
 @export_range(16, 128, 1) var tile_size_px: int = 64
 @export_range(8, 120, 1) var map_width_tiles: int = 40
 @export_range(8, 120, 1) var map_height_tiles: int = 24
@@ -11,6 +11,8 @@ extends TileMap
 func _ready() -> void:
 	if tile_set == null:
 		tile_set = _create_tileset()
+	if tile_set == null or tile_set.get_source_count() == 0:
+		return
 	_build_floor()
 
 
