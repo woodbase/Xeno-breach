@@ -2,7 +2,7 @@
 class_name PlaceholderTilemap
 extends TileMap
 
-@export var source_texture: Texture2D = preload("res://assets/environment/space_station.png")
+@export var source_texture: Texture2D = null
 @export_range(16, 128, 1) var tile_size_px: int = 64
 @export_range(8, 120, 1) var map_width_tiles: int = 40
 @export_range(8, 120, 1) var map_height_tiles: int = 24
@@ -11,10 +11,15 @@ extends TileMap
 func _ready() -> void:
 	if tile_set == null:
 		tile_set = _create_tileset()
+	if tile_set == null or tile_set.get_source_count() == 0:
+		return
 	_build_floor()
 
 
 func _create_tileset() -> TileSet:
+	if source_texture == null:
+		push_warning("PlaceholderTilemap: source_texture is not set. Assign a texture in the Inspector to make the tilemap visible.")
+		return TileSet.new()
 	var tiles := TileSet.new()
 	tiles.tile_size = Vector2i(tile_size_px, tile_size_px)
 
@@ -29,8 +34,10 @@ func _create_tileset() -> TileSet:
 
 func _build_floor() -> void:
 	clear_layer(0)
-	var half_width: int = map_width_tiles / 2
-	var half_height: int = map_height_tiles / 2
-	for x: int in range(-half_width, half_width):
-		for y: int in range(-half_height, half_height):
+	var start_x: int = -map_width_tiles / 2
+	var end_x: int = start_x + map_width_tiles
+	var start_y: int = -map_height_tiles / 2
+	var end_y: int = start_y + map_height_tiles
+	for x: int in range(start_x, end_x):
+		for y: int in range(start_y, end_y):
 			set_cell(0, Vector2i(x, y), 0, Vector2i.ZERO)
