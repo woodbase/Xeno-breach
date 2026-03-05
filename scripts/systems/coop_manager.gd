@@ -4,7 +4,6 @@
 ## Set [member player_count] before loading a level to configure the session.
 ## Connect to [signal player_count_changed] to update UI when the count changes.
 extends Node
-class_name CoopManager
 
 ## Emitted whenever [member player_count] changes.
 signal player_count_changed(new_count: int)
