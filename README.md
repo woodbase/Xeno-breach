@@ -26,7 +26,7 @@ scenes/          Godot scene files (.tscn)
 
 scripts/         GDScript source files (.gd)
   core/          Player controller, health component
-  combat/        Weapon, projectile, damageable interface
+  combat/        Weapon and projectile logic
   ai/            Enemy base with state machine
   systems/       Wave spawner, game state manager
   data/          Resource data containers
