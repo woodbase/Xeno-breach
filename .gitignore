@@ -4,6 +4,7 @@
 
 # Importerade resurser (skapas automatiskt)
 .import/
+.godot/
 
 # Export builds
 /export/
