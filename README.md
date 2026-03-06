@@ -1,8 +1,8 @@
 # Xeno Breach
 
-**Fast, aggressive twin-stick sci-fi shooter — built in Godot 4.x with typed GDScript.**
+**Retro-FPS sci-fi shooter in Wolfenstein 3D-stil — built in Godot 4.x with typed GDScript.**
 
-Fight through breach-infested stations in high-octane combat designed for speed, clarity, and replayability.
+Fight through breach-infested corridors i klassisk raycast/FPS-känsla med modern Godot-implementation.
 
 ---
 
@@ -58,7 +58,7 @@ See [`docs/architecture.md`](docs/architecture.md) for the full system design.
 | Action     | Binding       |
 |------------|---------------|
 | Move       | WASD          |
-| Aim        | Mouse         |
+| Look       | Mouse         |
 | Fire       | Left Mouse    |
 | Pause      | Escape        |
 
@@ -68,7 +68,7 @@ See [`docs/architecture.md`](docs/architecture.md) for the full system design.
 
 1. Open the project in **Godot 4.2+**
 2. Run the project (starts at `scenes/ui/main_menu.tscn`)
-3. Start a run and survive five waves of enemies
+3. Starta "Wolf Shift"-banan och rensa korridoren från vakter
 
 ## QA / Pre-merge
 

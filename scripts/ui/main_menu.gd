@@ -14,8 +14,8 @@ func _ready() -> void:
 	GameStateManager.change_state(GameStateManager.State.MAIN_MENU)
 	start_button.pressed.connect(_on_start_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
-	title_label.text = "XENO BREACH // PROTOCOL"
-	subtitle_label.text = "Industrial containment deployment // stay sharp"
+	title_label.text = "XENO BREACH // WOLF SHIFT"
+	subtitle_label.text = "Korridorkrig i Wolfenstein-stil // håll linjen"
 	_setup_coop_selector()
 	start_button.grab_focus()
 
@@ -77,7 +77,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _on_start_pressed() -> void:
 	AudioManager.play_ui("button_confirm")
 	GameStateManager.change_state(GameStateManager.State.PLAYING)
-	get_tree().change_scene_to_file("res://scenes/levels/test_level.tscn")
+	get_tree().change_scene_to_file("res://scenes/levels/wolf3d_level.tscn")
 
 
 func _on_quit_pressed() -> void:
