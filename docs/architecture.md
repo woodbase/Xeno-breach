@@ -54,11 +54,11 @@ if health != null:
     health.take_damage(damage)
 ```
 
-### Damageable contract
+### Damage contract
 
-`scripts/combat/damageable.gd` documents the expected interface.
 Any node exposing `take_damage(amount: float)` participates.
-The HealthComponent is the preferred implementation.
+In practice, this project uses `HealthComponent` as the default damage receiver
+to keep all health rules in one place.
 
 ### Signal bus (decoupling)
 
