@@ -26,6 +26,7 @@ signal enemy_killed
 @export var wave_data_list: Array[WaveData] = []
 @export var min_spawn_distance_from_player: float = 220.0
 @export var spawn_retry_count: int = 8
+@export var max_enemies_alive: int = 25
 
 ## Set by the owning level. Also accepted via [method start].
 var spawn_points: Array[Node2D] = []
@@ -96,6 +97,10 @@ func _spawn_wave_enemies() -> void:
 
 
 func _spawn_single_enemy() -> void:
+	if _get_alive_enemy_count() >= max_enemies_alive:
+		_on_enemy_removed(false)
+		return
+
 	if spawn_points.is_empty():
 		push_warning("WaveSpawner: no spawn_points assigned.")
 		_on_enemy_removed(false)
@@ -125,6 +130,7 @@ func _spawn_single_enemy() -> void:
 	elif _player != null:
 		enemy.set_target(_player)
 	enemy.died.connect(_on_enemy_died)
+	enemy.add_to_group("enemies")
 	get_parent().add_child(enemy)
 	# Scale enemy HP for co-op difficulty.
 	# add_child() triggers _ready() on the enemy, so HealthComponent is initialized here.
@@ -240,6 +246,10 @@ func _select_spawn_point() -> Node2D:
 		if _is_far_from_all_players(candidate.global_position, active_players):
 			return candidate
 	return null
+
+
+func _get_alive_enemy_count() -> int:
+	return get_tree().get_nodes_in_group("enemies").size()
 
 
 func _is_far_from_all_players(pos: Vector2, active_players: Array[Node2D]) -> bool:

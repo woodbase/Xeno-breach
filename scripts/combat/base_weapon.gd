@@ -14,6 +14,7 @@ const AudioLibrary = preload("res://scripts/systems/audio_library.gd")
 @export var damage: float = 10.0
 @export var projectile_scene: PackedScene
 @export var muzzle_offset: Vector2 = Vector2(32.0, 0.0)
+@export var max_projectiles_alive: int = 100
 
 ## Duration in seconds that the muzzle flash remains visible.
 const MUZZLE_FLASH_DURATION: float = 0.075
@@ -39,6 +40,9 @@ func _process(delta: float) -> void:
 
 ## Fire a projectile in [param direction]. Direction should be normalised.
 func fire(direction: Vector2) -> void:
+	if _get_alive_projectile_count() >= max_projectiles_alive:
+		return
+
 	if projectile_scene == null:
 		push_warning("BaseWeapon: projectile_scene is not assigned.")
 		return
@@ -59,6 +63,10 @@ func fire(direction: Vector2) -> void:
 
 	_show_muzzle_flash()
 	_play_fire_audio()
+
+
+func _get_alive_projectile_count() -> int:
+	return get_tree().get_nodes_in_group("projectiles").size()
 
 
 func _show_muzzle_flash() -> void:
