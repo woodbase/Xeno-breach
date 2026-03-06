@@ -25,14 +25,18 @@ func _ready() -> void:
 	muzzle_flash.visible = false
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion:
-		_rotate_camera(event.relative)
-		return
-
+func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("pause"):
 		var mode := Input.get_mouse_mode()
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE if mode == Input.MOUSE_MODE_CAPTURED else Input.MOUSE_MODE_CAPTURED)
+		return
+
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT and Input.get_mouse_mode() != Input.MOUSE_MODE_CAPTURED:
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+		return
+
+	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
+		_rotate_camera(event.relative)
 		return
 
 	if event.is_action_pressed("fire"):
@@ -43,7 +47,9 @@ func _physics_process(delta: float) -> void:
 	var input_vector := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	var forward := -transform.basis.z
 	var right := transform.basis.x
-	_target_velocity = (forward * input_vector.y + right * input_vector.x) * move_speed
+	# Input.get_vector returns -1 for "move_up" and +1 for "move_down",
+	# so invert Y to keep W = forward and S = backward.
+	_target_velocity = (forward * -input_vector.y + right * input_vector.x) * move_speed
 
 	velocity.x = move_toward(velocity.x, _target_velocity.x, acceleration * delta)
 	velocity.z = move_toward(velocity.z, _target_velocity.z, acceleration * delta)
