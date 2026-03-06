@@ -1,41 +1,35 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=6 format=3 uid="uid://bbdehoofnuted"]
 
 [ext_resource type="Script" path="res://scripts/core/player_controller.gd" id="1_player"]
 [ext_resource type="Script" path="res://scripts/core/health_component.gd" id="2_health"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/pulse_carbine.tscn" id="3_weapon"]
-[ext_resource type="Texture2D" path="res://assets/player/player.png" id="4_player_texture"]
+[ext_resource type="Texture2D" uid="uid://bbhnv2lshedip" path="res://assets/player/player.png" id="4_player_texture"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_1"]
 radius = 14.0
 height = 28.0
 
 [node name="Player" type="CharacterBody2D"]
-collision_layer = 1
 collision_mask = 4
 script = ExtResource("1_player")
-move_speed = 300.0
-acceleration = 1500.0
-friction = 1200.0
 weapon_path = NodePath("WeaponMount/PulseCarbine")
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource("2_health")
-max_health = 100.0
 invulnerability_duration = 0.5
 
 [node name="WeaponMount" type="Node2D" parent="."]
 
-[node name="PulseCarbine" type="Node2D" parent="WeaponMount" instance=ExtResource("3_weapon")]
+[node name="PulseCarbine" parent="WeaponMount" instance=ExtResource("3_weapon")]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CapsuleShape2D_1")
 
 [node name="Body" type="Sprite2D" parent="."]
-position = Vector2(-2, 0)
 texture = ExtResource("4_player_texture")
+hframes = 2
 region_enabled = true
-region_rect = Rect2(90, 250, 230, 230)
-scale = Vector2(0.95, 0.95)
+region_rect = Rect2(576, 447, 225, 141)
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position_smoothing_enabled = true

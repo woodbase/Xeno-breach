@@ -1,23 +1,20 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=6 format=3 uid="uid://cyphh8kyv4cy3"]
 
 [ext_resource type="Script" path="res://scripts/ai/enemy_base.gd" id="1_enemy"]
 [ext_resource type="Script" path="res://scripts/core/health_component.gd" id="2_health"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/enemy_projectile.tscn" id="3_enemy_projectile"]
-[ext_resource type="Texture2D" path="res://assets/enemies/parasite.png" id="4_enemy_texture"]
+[ext_resource type="Texture2D" uid="uid://6nudjo4jiaqg" path="res://assets/enemies/parasite.png" id="4_enemy_texture"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_1"]
-radius = 16.0
+radius = 14.0
 height = 28.0
 
 [node name="EnemyBase" type="CharacterBody2D"]
 collision_layer = 2
 collision_mask = 6
 script = ExtResource("1_enemy")
-move_speed = 120.0
 detection_range = 320.0
 attack_range = 280.0
-damage = 10.0
-attack_cooldown = 1.0
 projectile_scene = ExtResource("3_enemy_projectile")
 projectile_speed = 360.0
 
@@ -29,7 +26,7 @@ max_health = 50.0
 shape = SubResource("CapsuleShape2D_1")
 
 [node name="Body" type="Sprite2D" parent="."]
+scale = Vector2(1.04, 1.04)
 texture = ExtResource("4_enemy_texture")
 region_enabled = true
-region_rect = Rect2(32, 8, 256, 232)
-scale = Vector2(1.04, 1.04)
+region_rect = Rect2(448, 298, 256, 200)
