@@ -19,6 +19,7 @@ signal state_changed(new_state: State, old_state: State)
 @export var attack_cooldown: float = 1.0
 @export var projectile_scene: PackedScene
 @export var projectile_speed: float = 350.0
+@export var max_projectiles_alive: int = 100
 
 @onready var health_component: HealthComponent = $HealthComponent
 @onready var _body: CanvasItem = $Body
@@ -111,6 +112,8 @@ func _do_attack() -> void:
 
 
 func _fire_projectile() -> void:
+	if _get_alive_projectile_count() >= max_projectiles_alive:
+		return
 	var projectile: Projectile = projectile_scene.instantiate() as Projectile
 	if projectile == null:
 		push_warning("EnemyBase: projectile_scene root is not a Projectile.")
@@ -124,6 +127,10 @@ func _fire_projectile() -> void:
 	var level: Node = get_tree().current_scene
 	if level != null:
 		level.add_child(projectile)
+
+
+func _get_alive_projectile_count() -> int:
+	return get_tree().get_nodes_in_group("projectiles").size()
 
 
 func _on_health_died() -> void:

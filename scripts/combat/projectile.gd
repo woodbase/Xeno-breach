@@ -34,6 +34,7 @@ const TRACER_LENGTH: float = 20.0
 
 
 func _ready() -> void:
+	add_to_group("projectiles")
 	body_entered.connect(_on_body_entered)
 	_lifetime_timer = lifetime
 	_tracer = get_node_or_null("Tracer") as Line2D
