@@ -722,7 +722,7 @@ def create_project(owner: str) -> tuple[str, int]:
         .get("nodes", [])
     )
     for node in existing_nodes:
-        if node.get("title") == PROJECT_TITLE:
+        if node and node.get("title") == PROJECT_TITLE:
             project_id = node["id"]
             project_number = node["number"]
             print(f"  Project already exists #{project_number} (id: {project_id})")
