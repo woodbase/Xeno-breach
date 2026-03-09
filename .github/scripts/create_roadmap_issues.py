@@ -1069,8 +1069,9 @@ def main():
         field_id = add_iteration_field(project_id)
         sprint_id_map = configure_iterations(project_id, field_id)
         add_issues_to_project(repo, project_id, field_id, sprint_id_map, issue_sprint_pairs)
-
-    print("\n\u2705 Done! All milestones, labels, issues and project sprints have been created.")
+        print("\n\u2705 Done! All milestones, labels, issues and project sprints have been created.")
+    else:
+        print("\n\u2705 Done! All milestones, labels and issues have been created (project setup skipped).")
 
 
 if __name__ == "__main__":
