@@ -1,0 +1,30 @@
+name: Create Roadmap Issues
+
+# Manually trigger this workflow once from the Actions tab.
+# It reads docs/Roadmap-demo.md and creates:
+#   - 8 GitHub Milestones (one per roadmap milestone)
+#   - Labels (priority, story points, post-demo)
+#   - 19 Issues, each assigned to a milestone with a checklist body
+#   - A GitHub Project v2 ("Xeno Breach – Roadmap to Playable Demo")
+#     with a Sprint iteration field (5 iterations) and every issue
+#     assigned to the correct sprint.
+on:
+  workflow_dispatch:
+
+jobs:
+  create-roadmap:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+      projects: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run roadmap setup script
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 .github/scripts/create_roadmap_issues.py \
+            --repo "${{ github.repository }}"
