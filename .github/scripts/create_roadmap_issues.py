@@ -20,15 +20,7 @@ import datetime
 import json
 import subprocess
 import sys
-def ensure_all_milestones_exist(repo, milestones_list):
-    existing = {m.title for m in repo.get_milestones(state="all")}
-    for milestone in milestones_list:
-        if milestone["title"] not in existing:
-            print(f"[Patch] Creating missing milestone: {milestone['title']}")
-            repo.create_milestone(
-                title=milestone["title"],
-                description=milestone["description"]
-            )
+
 # ---------------------------------------------------------------------------
 # Roadmap data derived from docs/Roadmap-demo.md
 # ---------------------------------------------------------------------------
@@ -579,6 +571,48 @@ def graphql(query: str, **variables):
 # Steps
 # ---------------------------------------------------------------------------
 
+def ensure_all_milestones_exist(repo: str, milestones_list: list) -> None:
+    """Ensure every milestone in milestones_list exists; create any that are missing.
+
+    This is a lightweight patch step that can be called after :func:`create_milestones`
+    to repair any gaps without re-running the full setup.
+    """
+    existing_result = subprocess.run(
+        ["gh", "api", f"repos/{repo}/milestones",
+         "--paginate", "--field", "state=all"],
+        capture_output=True, text=True,
+    )
+    existing: set[str] = set()
+    if existing_result.returncode == 0 and existing_result.stdout.strip():
+        try:
+            existing = {m["title"] for m in json.loads(existing_result.stdout)}
+        except json.JSONDecodeError:
+            pass
+    else:
+        print(
+            f"  WARN: Could not list existing milestones "
+            f"(exit {existing_result.returncode}): {existing_result.stderr.strip()}",
+            file=sys.stderr,
+        )
+
+    for milestone in milestones_list:
+        if milestone["title"] not in existing:
+            print(f"  [Patch] Creating missing milestone: {milestone['title']}")
+            result = subprocess.run(
+                ["gh", "api", f"repos/{repo}/milestones",
+                 "--method", "POST",
+                 "--field", f"title={milestone['title']}",
+                 "--field", f"description={milestone['description']}"],
+                capture_output=True, text=True,
+            )
+            if result.returncode != 0:
+                print(
+                    f"  WARN: Failed to create milestone '{milestone['title']}': "
+                    f"{result.stderr.strip()}",
+                    file=sys.stderr,
+                )
+
+
 def create_labels(repo: str):
     print("\n=== Creating labels ===")
     for name, color, description in LABELS:
@@ -1027,6 +1061,7 @@ def main():
 
     create_labels(repo)
     milestone_map = create_milestones(repo)
+    ensure_all_milestones_exist(repo, MILESTONES)
     issue_sprint_pairs = create_issues(repo, milestone_map)
 
     if not args.skip_project:
