@@ -31,6 +31,10 @@ signal died
 ## Maximum (most upward) camera pitch in radians.
 @export var pitch_max: float = 1.5
 
+## When true, the mouse cursor is captured on [method _ready]. Set to false
+## when instancing the player outside of active gameplay (e.g. tests, menus).
+@export var capture_mouse: bool = true
+
 @onready var health_component: HealthComponent = $HealthComponent
 @onready var camera: Camera3D = $Camera3D
 
@@ -41,7 +45,8 @@ var _damage_overlay: ColorRect = null
 
 
 func _ready() -> void:
-	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	if capture_mouse:
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	add_to_group("player")
 	health_component.damaged.connect(func(amount: float) -> void:
 		damaged.emit(amount)

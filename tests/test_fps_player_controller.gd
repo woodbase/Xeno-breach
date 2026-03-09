@@ -1,6 +1,6 @@
 ## Unit tests for FPSPlayerController.
 ##
-## Validates movement speed selection, camera pitch clamping, gravity logic,
+## Validates movement speed selection, camera pitch clamping,
 ## and the health / damage delegation contract.
 ##
 ## Run standalone: create a scene with a Node root, attach this script.
@@ -109,6 +109,7 @@ func test_pitch_within_range_unchanged() -> void:
 	var expected: float = -100.0 * player.mouse_sensitivity
 	_assert(absf(player.camera.rotation.x - expected) < 0.001,
 		"small downward mouse look sets camera pitch without clamping")
+	player.queue_free()
 
 
 func test_take_damage_reduces_health() -> void:
