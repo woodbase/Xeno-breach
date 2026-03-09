@@ -553,11 +553,18 @@ def graphql(query: str, **variables):
     try:
         return json.loads(raw)
     except json.JSONDecodeError as exc:
-        print(
-            f"  WARN: Could not parse GraphQL response as JSON: {exc}",
-            file=sys.stderr,
+        # Include the first line of the query and a snippet of the raw response
+        # so the caller / operator can identify which operation produced the
+        # non-JSON output (e.g., an HTML error page from the GitHub API).
+        first_line = (query.strip().splitlines() or ["<empty query>"])[0]
+        snippet = raw[:200] + ("..." if len(raw) > 200 else "")
+        msg = (
+            f"Could not parse GraphQL response as JSON "
+            f"(operation: '{first_line}'): {exc}. "
+            f"Response snippet: {snippet!r}"
         )
-        return {}
+        print(f"  WARN: {msg}", file=sys.stderr)
+        return {"errors": [{"message": msg}]}
 
 
 # ---------------------------------------------------------------------------
@@ -659,6 +666,7 @@ def create_issues(repo: str, milestone_map: dict) -> list[tuple[int, str]]:
             pass
 
     created: list[tuple[int, str]] = []
+    missing_milestone_keys: list[str] = []
     for issue in ISSUES:
         if issue["title"] in existing_issues:
             existing_number = existing_issues[issue["title"]]
@@ -673,6 +681,7 @@ def create_issues(repo: str, milestone_map: dict) -> list[tuple[int, str]]:
                 f"skipping issue '{issue['title']}'",
                 file=sys.stderr,
             )
+            missing_milestone_keys.append(issue["milestone_key"])
             continue
         label_str = ",".join(issue["labels"])
         result = subprocess.run(
@@ -696,6 +705,15 @@ def create_issues(repo: str, milestone_map: dict) -> list[tuple[int, str]]:
                 f"{result.stderr.strip()}",
                 file=sys.stderr,
             )
+    if missing_milestone_keys:
+        unique_keys = sorted(set(missing_milestone_keys))
+        print(
+            f"\n  ERROR: {len(missing_milestone_keys)} issue(s) were skipped because "
+            f"their milestone key(s) were not found in milestone_map: "
+            f"{unique_keys}. Run is incomplete.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
     return created
 
 
