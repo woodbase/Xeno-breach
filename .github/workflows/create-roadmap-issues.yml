@@ -18,7 +18,8 @@ jobs:
 
       - name: Run roadmap setup script
         env:
-          GH_TOKEN: ${{ github.token }}
+          # Prefer PAT when configured; otherwise use default Actions token.
+          GH_TOKEN: ${{ secrets.PROJECTS_RW_TOKEN || github.token }}
         run: |
           python3 .github/scripts/create_roadmap_issues.py \
             --repo "${{ github.repository }}" \
