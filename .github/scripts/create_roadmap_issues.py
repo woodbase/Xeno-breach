@@ -20,7 +20,15 @@ import datetime
 import json
 import subprocess
 import sys
-
+def ensure_all_milestones_exist(repo, milestones_list):
+    existing = {m.title for m in repo.get_milestones(state="all")}
+    for milestone in milestones_list:
+        if milestone["title"] not in existing:
+            print(f"[Patch] Creating missing milestone: {milestone['title']}")
+            repo.create_milestone(
+                title=milestone["title"],
+                description=milestone["description"]
+            )
 # ---------------------------------------------------------------------------
 # Roadmap data derived from docs/Roadmap-demo.md
 # ---------------------------------------------------------------------------
