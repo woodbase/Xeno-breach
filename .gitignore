@@ -54,3 +54,5 @@ obj/
 # Export presets (valfritt)
 # =========================
 # export_presets.cfg
+*.pyc
+__pycache__/
