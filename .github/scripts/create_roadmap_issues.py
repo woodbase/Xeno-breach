@@ -709,6 +709,8 @@ def create_issues(repo: str, milestone_map: dict) -> list[tuple[int, str]]:
 
     created: list[tuple[int, str]] = []
     missing_milestone_keys: list[str] = []
+    creation_failures: list[str] = []
+
     for issue in ISSUES:
         if issue["title"] in existing_issues:
             existing_number = existing_issues[issue["title"]]
@@ -716,6 +718,7 @@ def create_issues(repo: str, milestone_map: dict) -> list[tuple[int, str]]:
             # Still include in returned pairs so sprint assignment is applied.
             created.append((existing_number, issue["sprint_key"]))
             continue
+
         ms_number = milestone_map.get(issue["milestone_key"])
         if ms_number is None:
             print(
@@ -725,28 +728,43 @@ def create_issues(repo: str, milestone_map: dict) -> list[tuple[int, str]]:
             )
             missing_milestone_keys.append(issue["milestone_key"])
             continue
-        label_str = ",".join(issue["labels"])
-        result = subprocess.run(
-            ["gh", "issue", "create",
-             "--repo", repo,
-             "--milestone", str(ms_number),
-             "--label", label_str,
-             "--title", issue["title"],
-             "--body", issue["body"]],
-            capture_output=True, text=True,
-        )
+
+        # Use the REST API directly for robust parsing in CI.
+        # Labels are sent as repeated form fields to avoid CSV parsing edge-cases.
+        cmd = [
+            "gh", "api", f"repos/{repo}/issues",
+            "--method", "POST",
+            "--field", f"title={issue['title']}",
+            "--field", f"body={issue['body']}",
+            "--field", f"milestone={ms_number}",
+        ]
+        for label in issue["labels"]:
+            cmd.extend(["--field", f"labels[]={label}"])
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
         if result.returncode == 0:
-            # Output is the issue URL, e.g. https://github.com/owner/repo/issues/42
-            url = result.stdout.strip()
-            number = int(url.rstrip("/").split("/")[-1])
+            try:
+                payload = json.loads(result.stdout)
+                number = int(payload["number"])
+            except (json.JSONDecodeError, KeyError, TypeError, ValueError):
+                print(
+                    f"  WARN: Issue creation returned unexpected payload for '{issue['title']}'",
+                    file=sys.stderr,
+                )
+                creation_failures.append(issue["title"])
+                continue
+
             created.append((number, issue["sprint_key"]))
             print(f"  Created issue #{number}: {issue['title']}")
         else:
+            err = result.stderr.strip() or result.stdout.strip() or "unknown error"
             print(
-                f"  WARN: Failed to create issue '{issue['title']}': "
-                f"{result.stderr.strip()}",
+                f"  WARN: Failed to create issue '{issue['title']}': {err}",
                 file=sys.stderr,
             )
+            creation_failures.append(issue["title"])
+
     if missing_milestone_keys:
         unique_keys = sorted(set(missing_milestone_keys))
         print(
@@ -756,6 +774,20 @@ def create_issues(repo: str, milestone_map: dict) -> list[tuple[int, str]]:
             file=sys.stderr,
         )
         sys.exit(1)
+
+    if creation_failures:
+        print(
+            f"\n  ERROR: {len(creation_failures)} issue(s) failed to create: "
+            f"{creation_failures}.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    if not created:
+        print("\n  ERROR: No issues were created or detected.", file=sys.stderr)
+        sys.exit(1)
+
+
     return created
 
 
@@ -1069,8 +1101,9 @@ def main():
         field_id = add_iteration_field(project_id)
         sprint_id_map = configure_iterations(project_id, field_id)
         add_issues_to_project(repo, project_id, field_id, sprint_id_map, issue_sprint_pairs)
-
-    print("\n\u2705 Done! All milestones, labels, issues and project sprints have been created.")
+        print("\n\u2705 Done! All milestones, labels, issues and project sprints have been created.")
+    else:
+        print("\n\u2705 Done! All milestones, labels and issues have been created (project setup skipped).")
 
 
 if __name__ == "__main__":

@@ -1,19 +1,8 @@
-name: Create Roadmap Issues
+name: Create Roadmap Issues (Actions-Safe)
 
-# Manually trigger this workflow once from the Actions tab.
-# It reads docs/Roadmap-demo.md and creates:
-#   - 8 GitHub Milestones (one per roadmap milestone)
-#   - Labels (priority, story points, post-demo)
-#   - 19 Issues, each assigned to a milestone with a checklist body
-#   - A GitHub Project v2 ("Xeno Breach – Roadmap to Playable Demo")
-#     with a Sprint iteration field (5 iterations) and every issue
-#     assigned to the correct sprint.
-#
-# IMPORTANT: GitHub Projects v2 are created at the user/organisation level,
-# so the default GITHUB_TOKEN does not have the necessary `project` scope.
-# Before running this workflow, create a PAT (classic) with the `project`
-# scope, or a Fine-Grained PAT with "Projects Read & Write" access, and
-# store it as a repository secret named PROJECTS_RW_TOKEN.
+# This workflow creates labels, milestones and roadmap issues.
+# It intentionally skips GitHub Projects v2 setup so it works with the
+# default GITHUB_TOKEN in GitHub Actions (no PAT required).
 on:
   workflow_dispatch:
 
@@ -29,7 +18,9 @@ jobs:
 
       - name: Run roadmap setup script
         env:
-          GH_TOKEN: ${{ secrets.PROJECTS_RW_TOKEN }}
+          # Prefer PAT when configured; otherwise use default Actions token.
+          GH_TOKEN: ${{ secrets.PROJECTS_RW_TOKEN || github.token }}
         run: |
           python3 .github/scripts/create_roadmap_issues.py \
-            --repo "${{ github.repository }}"
+            --repo "${{ github.repository }}" \
+            --skip-project
