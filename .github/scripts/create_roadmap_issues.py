@@ -550,7 +550,14 @@ def graphql(query: str, **variables):
     raw = gh(*args, check=False)
     if not raw:
         return {}
-    return json.loads(raw)
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError as exc:
+        print(
+            f"  WARN: Could not parse GraphQL response as JSON: {exc}",
+            file=sys.stderr,
+        )
+        return {}
 
 
 # ---------------------------------------------------------------------------
@@ -659,7 +666,14 @@ def create_issues(repo: str, milestone_map: dict) -> list[tuple[int, str]]:
             # Still include in returned pairs so sprint assignment is applied.
             created.append((existing_number, issue["sprint_key"]))
             continue
-        ms_number = milestone_map[issue["milestone_key"]]
+        ms_number = milestone_map.get(issue["milestone_key"])
+        if ms_number is None:
+            print(
+                f"  WARN: No milestone found for key '{issue['milestone_key']}', "
+                f"skipping issue '{issue['title']}'",
+                file=sys.stderr,
+            )
+            continue
         label_str = ",".join(issue["labels"])
         result = subprocess.run(
             ["gh", "issue", "create",
@@ -737,14 +751,22 @@ def create_project(owner: str) -> tuple[str, int]:
         ownerId=owner_id,
         title=PROJECT_TITLE,
     )
+    if resp.get("errors"):
+        print(
+            f"  ERROR: GraphQL errors during project creation: {resp['errors']}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
     project = (
         resp.get("data", {})
         .get("createProjectV2", {})
         .get("projectV2")
     )
     if not project:
-        errors = resp.get("errors", resp)
-        print(f"  ERROR: Could not create project: {errors}", file=sys.stderr)
+        print(
+            f"  ERROR: Could not create project: unexpected response {resp}",
+            file=sys.stderr,
+        )
         sys.exit(1)
     project_id = project["id"]
     project_number = project["number"]
