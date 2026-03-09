@@ -188,10 +188,12 @@ func _on_health_damaged(_amount: float) -> void:
 
 
 ## Initialize patrol waypoints centered on the spawn position.
-## Called automatically from [method _ready] when [member patrol_enabled] is true.
+## Called automatically from [method _ready]; early-returns when patrol is disabled or [member patrol_radius] <= 0.0.
 func _init_patrol() -> void:
 	_spawn_position = global_position
 	if not patrol_enabled or patrol_radius <= 0.0:
+		_patrol_points.clear()
+		_patrol_index = 0
 		return
 	_patrol_points = [
 		_spawn_position + Vector2(patrol_radius, 0.0),
