@@ -592,22 +592,73 @@ def create_milestones(repo: str) -> dict:
             number = json.loads(result.stdout)["number"]
             print(f"  Created milestone #{number}: {ms['title']}")
         else:
-            # Fall back to reading the existing milestone
-            existing = gh_json(
-                "api", f"repos/{repo}/milestones",
-                "--jq", f'[.[] | select(.title=="{ms["title"]}")] | .[0]',
+            # Fall back to reading the existing milestone using Python-side
+            # filtering to avoid embedding the title in a jq expression.
+            existing_result = subprocess.run(
+                ["gh", "api", f"repos/{repo}/milestones"],
+                capture_output=True, text=True,
             )
+            if existing_result.returncode != 0:
+                raise RuntimeError(
+                    f"Failed to list milestones for repo {repo}: "
+                    f"{existing_result.stderr.strip()}"
+                )
+            try:
+                all_milestones = json.loads(existing_result.stdout)
+            except json.JSONDecodeError as exc:
+                raise RuntimeError(
+                    f"Unable to parse milestones JSON for repo {repo}"
+                ) from exc
+            existing = next(
+                (m for m in all_milestones if m.get("title") == ms["title"]),
+                None,
+            )
+            if existing is None:
+                raise RuntimeError(
+                    f"Milestone with title '{ms['title']}' not found in repo {repo}"
+                )
             number = existing["number"]
             print(f"  Milestone already exists #{number}: {ms['title']}")
         mapping[ms["number_key"]] = number
     return mapping
 
 
-def create_issues(repo: str, milestone_map: dict) -> list[int]:
-    """Create all issues and return the list of created issue numbers."""
+def create_issues(repo: str, milestone_map: dict) -> list[tuple[int, str]]:
+    """Create all issues; skip any that already exist (by title).
+
+    Returns a list of ``(issue_number, sprint_key)`` pairs so that
+    sprint assignment is never positionally derived and cannot go out of
+    sync when individual issue creations fail.
+
+    Existing issues are still included in the returned list so that they
+    are added to the project and assigned to the correct sprint even when
+    the script is re-run.
+    """
     print("\n=== Creating issues ===")
-    created: list[int] = []
+
+    # Fetch ALL existing open issues (paginated) so deduplication is complete
+    # even in repositories with many issues.
+    existing_issues: dict[str, int] = {}  # title -> issue number
+    existing_result = subprocess.run(
+        ["gh", "issue", "list", "--repo", repo,
+         "--state", "open", "--paginate", "--json", "title,number"],
+        capture_output=True, text=True,
+    )
+    if existing_result.returncode == 0 and existing_result.stdout.strip():
+        try:
+            for item in json.loads(existing_result.stdout):
+                existing_issues[item.get("title", "")] = item.get("number", 0)
+        except json.JSONDecodeError:
+            pass
+
+    created: list[tuple[int, str]] = []
     for issue in ISSUES:
+        if issue["title"] in existing_issues:
+            existing_number = existing_issues[issue["title"]]
+            print(f"  Issue already exists #{existing_number} (skipped): {issue['title']}")
+            # Still include in returned pairs so sprint assignment is applied.
+            created.append((existing_number, issue["sprint_key"]))
+            continue
         ms_number = milestone_map[issue["milestone_key"]]
         label_str = ",".join(issue["labels"])
         result = subprocess.run(
@@ -623,7 +674,7 @@ def create_issues(repo: str, milestone_map: dict) -> list[int]:
             # Output is the issue URL, e.g. https://github.com/owner/repo/issues/42
             url = result.stdout.strip()
             number = int(url.rstrip("/").split("/")[-1])
-            created.append(number)
+            created.append((number, issue["sprint_key"]))
             print(f"  Created issue #{number}: {issue['title']}")
         else:
             print(
@@ -635,8 +686,10 @@ def create_issues(repo: str, milestone_map: dict) -> list[int]:
 
 
 def create_project(owner: str) -> tuple[str, int]:
-    """Create a GitHub Project v2 and return (project_id, project_number)."""
+    """Create a GitHub Project v2 (or return the existing one) and return (project_id, project_number)."""
     print("\n=== Creating GitHub Project v2 ===")
+    PROJECT_TITLE = "Xeno Breach \u2013 Roadmap to Playable Demo"
+
     # Resolve owner node ID
     resp = graphql(
         "query($login:String!){ repositoryOwner(login:$login){ id } }",
@@ -652,6 +705,29 @@ def create_project(owner: str) -> tuple[str, int]:
         print(f"  ERROR: Could not resolve owner id for '{owner}': {errors}", file=sys.stderr)
         sys.exit(1)
 
+    # Check whether a project with this name already exists to avoid duplicates.
+    resp_check = graphql(
+        """query($login:String!){
+          repositoryOwner(login:$login){
+            ... on User         { projectsV2(first:20){ nodes{ id number title } } }
+            ... on Organization { projectsV2(first:20){ nodes{ id number title } } }
+          }
+        }""",
+        login=owner,
+    )
+    existing_nodes = (
+        resp_check.get("data", {})
+        .get("repositoryOwner", {})
+        .get("projectsV2", {})
+        .get("nodes", [])
+    )
+    for node in existing_nodes:
+        if node.get("title") == PROJECT_TITLE:
+            project_id = node["id"]
+            project_number = node["number"]
+            print(f"  Project already exists #{project_number} (id: {project_id})")
+            return project_id, project_number
+
     resp = graphql(
         """mutation($ownerId:ID!,$title:String!){
           createProjectV2(input:{ownerId:$ownerId,title:$title}){
@@ -659,7 +735,7 @@ def create_project(owner: str) -> tuple[str, int]:
           }
         }""",
         ownerId=owner_id,
-        title="Xeno Breach \u2013 Roadmap to Playable Demo",
+        title=PROJECT_TITLE,
     )
     project = (
         resp.get("data", {})
@@ -711,14 +787,20 @@ def add_iteration_field(project_id: str) -> str:
 
 
 def configure_iterations(project_id: str, field_id: str) -> dict[str, str]:
-    """
-    Rename the auto-created iterations and add the remaining sprints.
-    Returns a mapping of sprint_key → iteration_id.
+    """Configure all sprint iterations in one API call.
+
+    The GitHub Projects v2 ``iterationConfiguration.iterations`` array is a
+    **replacement** list, not an append list — every call overwrites whatever
+    was there before.  This function therefore collects all desired iterations
+    and issues a single ``updateProjectV2Field`` mutation so that all five
+    sprints end up in the field.
+
+    Returns a mapping of full sprint title → iteration_id.
     """
     print("\n=== Configuring Sprint iterations ===")
     today = datetime.date.today().isoformat()
 
-    # Query existing iterations
+    # Query the auto-created iteration(s) so we can reuse their IDs.
     resp = graphql(
         """query($pid:ID!,$fname:String!){
           node(id:$pid){
@@ -743,90 +825,63 @@ def configure_iterations(project_id: str, field_id: str) -> dict[str, str]:
         .get("iterations", [])
     )
 
-    sprint_id_map: dict[str, str] = {}
-
-    # Rename / create each sprint iteration.
-    # GitHub Projects v2 updateProjectV2Field can update the iteration cycle
-    # and rename existing iterations when passed with their IDs.
+    # Build the complete iteration list: reuse auto-created IDs for the first
+    # N sprints, leave new ones without an id so GitHub creates them.
+    # All five sprints are collected here and sent in ONE mutation call so
+    # that no earlier entry is overwritten by a later one.
+    #
+    # Use json.dumps() to produce a properly escaped JSON string literal for
+    # each title (handles backslashes, newlines, unicode, etc.) then strip
+    # the surrounding double-quotes since we embed it in the GraphQL value.
+    iter_parts: list[str] = []
     for idx, full_title in enumerate(SPRINTS):
+        safe_title = json.dumps(full_title)[1:-1]  # inner content, without outer quotes
         if idx < len(existing):
-            # Rename the existing auto-created iteration
             iter_id = existing[idx]["id"]
-            resp2 = graphql(
-                """mutation($pid:ID!,$fid:ID!,$today:Date!,$iid:String!,$ititle:String!){
-                  updateProjectV2Field(input:{
-                    projectId:$pid, fieldId:$fid,
-                    iterationConfiguration:{
-                      duration:14, startDay:1,
-                      iterations:[{ id:$iid, title:$ititle, startDate:$today, duration:14 }],
-                      completedIterations:[]
-                    }
-                  }){
-                    projectV2Field{
-                      ... on ProjectV2IterationField{
-                        configuration{ iterations{ id title } }
-                      }
-                    }
-                  }
-                }""",
-                pid=project_id,
-                fid=field_id,
-                today=today,
-                iid=iter_id,
-                ititle=full_title,
+            iter_parts.append(
+                f'{{id:"{iter_id}", title:"{safe_title}", '
+                f'startDate:"{today}", duration:14}}'
             )
-            updated = (
-                resp2.get("data", {})
-                .get("updateProjectV2Field", {})
-                .get("projectV2Field", {})
-                .get("configuration", {})
-                .get("iterations", [])
-            )
-            if updated:
-                sprint_id_map[full_title] = updated[0]["id"]
-                print(f"  Renamed iteration to: {full_title}")
-            else:
-                sprint_id_map[full_title] = iter_id
-                print(f"  Used existing iteration id for: {full_title}")
         else:
-            # Add a new iteration (no id → GitHub creates it)
-            resp3 = graphql(
-                """mutation($pid:ID!,$fid:ID!,$ititle:String!){
-                  updateProjectV2Field(input:{
-                    projectId:$pid, fieldId:$fid,
-                    iterationConfiguration:{
-                      duration:14, startDay:1,
-                      iterations:[{ title:$ititle, duration:14 }],
-                      completedIterations:[]
-                    }
-                  }){
-                    projectV2Field{
-                      ... on ProjectV2IterationField{
-                        configuration{ iterations{ id title } }
-                      }
-                    }
-                  }
-                }""",
-                pid=project_id,
-                fid=field_id,
-                ititle=full_title,
-            )
-            iters = (
-                resp3.get("data", {})
-                .get("updateProjectV2Field", {})
-                .get("projectV2Field", {})
-                .get("configuration", {})
-                .get("iterations", [])
-            )
-            # The last entry should be the newly created one
-            if iters:
-                sprint_id_map[full_title] = iters[-1]["id"]
-                print(f"  Created iteration: {full_title}")
-            else:
-                print(
-                    f"  WARN: Could not create/retrieve iteration for: {full_title}",
-                    file=sys.stderr,
-                )
+            iter_parts.append(f'{{title:"{safe_title}", duration:14}}')
+
+    iterations_gql = "[" + ", ".join(iter_parts) + "]"
+
+    resp2 = graphql(
+        f"""mutation($pid:ID!,$fid:ID!){{
+          updateProjectV2Field(input:{{
+            projectId:$pid, fieldId:$fid,
+            iterationConfiguration:{{
+              duration:14, startDay:1,
+              iterations:{iterations_gql},
+              completedIterations:[]
+            }}
+          }}){{
+            projectV2Field{{
+              ... on ProjectV2IterationField{{
+                configuration{{ iterations{{ id title }} }}
+              }}
+            }}
+          }}
+        }}""",
+        pid=project_id,
+        fid=field_id,
+    )
+    final_iters = (
+        resp2.get("data", {})
+        .get("updateProjectV2Field", {})
+        .get("projectV2Field", {})
+        .get("configuration", {})
+        .get("iterations", [])
+    )
+
+    sprint_id_map: dict[str, str] = {}
+    for it in final_iters:
+        sprint_id_map[it["title"]] = it["id"]
+        print(f"  Configured iteration: {it['title']} (id: {it['id']})")
+
+    if not sprint_id_map:
+        print("  WARN: No iterations returned after configuration", file=sys.stderr)
 
     return sprint_id_map
 
@@ -836,19 +891,19 @@ def add_issues_to_project(
     project_id: str,
     field_id: str,
     sprint_id_map: dict[str, str],
-    issue_numbers: list[int],
+    issue_sprint_pairs: list[tuple[int, str]],
 ):
-    """Add every issue to the project and assign it to the correct sprint."""
+    """Add every issue to the project and assign it to the correct sprint.
+
+    ``issue_sprint_pairs`` is a list of ``(issue_number, sprint_key)`` tuples
+    returned by :func:`create_issues`, so the sprint assignment is always
+    explicit and never derived from list position.
+    """
     print("\n=== Adding issues to project and assigning sprints ===")
 
-    # Build issue number → sprint_key lookup
-    issue_sprint: dict[int, str] = {}
-    for i, issue in enumerate(ISSUES):
-        if i < len(issue_numbers):
-            sprint_full = SPRINT_KEY_MAP.get(issue["sprint_key"], "")
-            issue_sprint[issue_numbers[i]] = sprint_full
+    for issue_num, sprint_key in issue_sprint_pairs:
+        sprint_full = SPRINT_KEY_MAP.get(sprint_key, "")
 
-    for issue_num, sprint_full in issue_sprint.items():
         # Get issue node ID
         node_id = gh(
             "api", f"repos/{repo}/issues/{issue_num}",
@@ -924,13 +979,13 @@ def main():
 
     create_labels(repo)
     milestone_map = create_milestones(repo)
-    issue_numbers = create_issues(repo, milestone_map)
+    issue_sprint_pairs = create_issues(repo, milestone_map)
 
     if not args.skip_project:
         project_id, _ = create_project(owner)
         field_id = add_iteration_field(project_id)
         sprint_id_map = configure_iterations(project_id, field_id)
-        add_issues_to_project(repo, project_id, field_id, sprint_id_map, issue_numbers)
+        add_issues_to_project(repo, project_id, field_id, sprint_id_map, issue_sprint_pairs)
 
     print("\n\u2705 Done! All milestones, labels, issues and project sprints have been created.")
 

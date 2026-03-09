@@ -8,6 +8,12 @@ name: Create Roadmap Issues
 #   - A GitHub Project v2 ("Xeno Breach – Roadmap to Playable Demo")
 #     with a Sprint iteration field (5 iterations) and every issue
 #     assigned to the correct sprint.
+#
+# IMPORTANT: GitHub Projects v2 are created at the user/organisation level,
+# so the default GITHUB_TOKEN does not have the necessary `project` scope.
+# Before running this workflow, create a PAT (classic) with the `project`
+# scope, or a Fine-Grained PAT with "Projects Read & Write" access, and
+# store it as a repository secret named PROJECTS_RW_TOKEN.
 on:
   workflow_dispatch:
 
@@ -17,14 +23,13 @@ jobs:
     permissions:
       issues: write
       contents: read
-      projects: write
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Run roadmap setup script
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PROJECTS_RW_TOKEN }}
         run: |
           python3 .github/scripts/create_roadmap_issues.py \
             --repo "${{ github.repository }}"
