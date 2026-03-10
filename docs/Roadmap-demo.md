@@ -40,15 +40,15 @@ Priority: Critical
 
 Tasks:
 
-- FPS camera
-- Mouse look
-- Player movement (WASD)
-- Sprint
-- Jump (optional)
-- Collision handling
-- Player health system
-- Damage feedback
-- Death state
+- [x] FPS camera
+- [x] Mouse look
+- [x] Player movement (WASD)
+- [x] Sprint
+- [x] Jump (optional)
+- [x] Collision handling
+- [x] Player health system
+- [x] Damage feedback
+- [x] Death state
 
 ---
 
@@ -59,20 +59,20 @@ Priority: Critical
 
 Tasks:
 
-- Weapon base class
-- Firing system
-- Hitscan or projectile system
-- Fire rate / cooldown
-- Ammo system
-- Reload system
-- Impact effects
+- [x] Weapon base class
+- [x] Firing system
+- [x] Hitscan or projectile system
+- [x] Fire rate / cooldown
+- [x] Ammo system
+- [x] Reload system
+- [x] Impact effects
 
 Architecture must support:
 
-- Multiple weapons
-- Weapon upgrades
-- Different firing modes
-- Weapon switching
+- [x] Multiple weapons
+- [x] Weapon upgrades
+- [x] Different firing modes
+- [x] Weapon switching
 
 Demo weapon:
 
@@ -87,18 +87,18 @@ Priority: Critical
 
 Tasks:
 
-- Enemy base class
-- Enemy health
-- Damage system
-- Enemy death state
-- Basic enemy AI
+- [x] Enemy base class
+- [x] Enemy health
+- [x] Damage system
+- [x] Enemy death state
+- [x] Basic enemy AI
 
 AI behaviors:
 
-- Patrol or idle
-- Detect player
-- Chase player
-- Melee or close-range attack
+- [x] Patrol or idle
+- [x] Detect player
+- [x] Chase player
+- [x] Melee or close-range attack
 
 Demo enemy:
 
@@ -120,11 +120,11 @@ Story Points: 5
 
 Tasks:
 
-- Hit effects
-- Enemy damage reaction
-- Screen damage effect
-- Weapon recoil
-- Basic muzzle flash
+- [x] Hit effects
+- [x] Enemy damage reaction
+- [x] Screen damage effect
+- [ ] Weapon recoil
+- [x] Basic muzzle flash
 
 ---
 
@@ -134,11 +134,11 @@ Story Points: 5
 
 Tasks:
 
-- Weapon firing sound
-- Enemy sounds
-- Player damage sound
-- Ambient level sound
-- UI sounds
+- [x] Weapon firing sound
+- [x] Enemy sounds
+- [x] Player damage sound
+- [x] Ambient level sound
+- [x] UI sounds
 
 Use placeholder sounds if necessary.
 
@@ -158,11 +158,11 @@ Story Points: 5
 
 Tasks:
 
-- Level scene structure
-- Modular room layout
-- Enemy spawn system
-- Environmental collisions
-- Navigation zones
+- [x] Level scene structure
+- [ ] Modular room layout
+- [x] Enemy spawn system
+- [x] Environmental collisions
+- [ ] Navigation zones
 
 ---
 
@@ -172,10 +172,10 @@ Story Points: 5
 
 Tasks:
 
-- Player start location
-- Enemy encounters
-- Level progression path
-- Environmental storytelling
+- [x] Player start location
+- [x] Enemy encounters
+- [ ] Level progression path
+- [ ] Environmental storytelling
 
 ---
 
@@ -185,9 +185,9 @@ Story Points: 3
 
 Tasks:
 
-- Exit trigger
-- Victory screen
-- Demo completion screen
+- [ ] Exit trigger
+- [x] Victory screen
+- [ ] Demo completion screen
 
 ---
 
@@ -205,11 +205,11 @@ Story Points: 5
 
 HUD elements:
 
-- Player health
-- Ammo
-- Current weapon
-- Crosshair
-- Damage indicator
+- [x] Player health
+- [ ] Ammo
+- [ ] Current weapon
+- [ ] Crosshair
+- [ ] Damage indicator
 
 ---
 
@@ -219,10 +219,10 @@ Story Points: 5
 
 Tasks:
 
-- Main menu
-- Start game
-- Restart level
-- Quit game
+- [x] Main menu
+- [x] Start game
+- [x] Restart level
+- [x] Quit game
 
 ---
 
@@ -240,10 +240,10 @@ Story Points: 8
 
 Tasks:
 
-- Mission manager system
-- Objective structure
-- Event triggers
-- Mission completion tracking
+- [ ] Mission manager system
+- [ ] Objective structure
+- [ ] Event triggers
+- [ ] Mission completion tracking
 
 Examples of future missions:
 
@@ -268,10 +268,10 @@ Story Points: 5
 
 Tasks:
 
-- Basic lighting
-- Environment textures
-- Weapon model polish
-- Enemy model polish
+- [ ] Basic lighting
+- [ ] Environment textures
+- [ ] Weapon model polish
+- [ ] Enemy model polish
 
 ---
 
@@ -281,9 +281,9 @@ Story Points: 3
 
 Tasks:
 
-- FPS stability
-- Collision optimization
-- Enemy logic optimization
+- [ ] FPS stability
+- [ ] Collision optimization
+- [ ] Enemy logic optimization
 
 ---
 
@@ -293,10 +293,10 @@ Story Points: 5
 
 Tasks:
 
-- Intro text or screen
-- Short story introduction
-- Demo end screen
-- "Wishlist / Follow development" message
+- [ ] Intro text or screen
+- [ ] Short story introduction
+- [ ] Demo end screen
+- [ ] "Wishlist / Follow development" message
 
 ---
 
@@ -314,11 +314,11 @@ Story Points: 3
 
 Tasks:
 
-- Export build
-- Create itch.io page
-- Screenshots
-- Gameplay GIF
-- Description text
+- [ ] Export build
+- [ ] Create itch.io page
+- [ ] Screenshots
+- [ ] Gameplay GIF
+- [ ] Description text
 
 ---
 

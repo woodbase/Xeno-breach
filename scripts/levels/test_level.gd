@@ -1,5 +1,5 @@
 ## Test level orchestration — wires up player, HUD, and wave spawner.
-extends Node2D
+extends LevelBase
 
 const AudioLibrary = preload("res://scripts/systems/audio_library.gd")
 
@@ -17,7 +17,6 @@ const TELEMETRY_TARGET_CLEAR_TIME_MAX: float = 40.0
 const TELEMETRY_TARGET_KILLS_PER_MIN_MIN: float = 10.0
 const TELEMETRY_TARGET_KILLS_PER_MIN_MAX: float = 35.0
 const TELEMETRY_TARGET_DAMAGE_TAKEN_MAX: float = 30.0
-const MAIN_MENU_SCENE_PATH: String = "res://scenes/ui/main_menu.tscn"
 const PLAYER_SCENE: String = "res://scenes/player/player.tscn"
 
 ## Spawn offsets for co-op players 2–4 relative to player 1.
@@ -26,9 +25,6 @@ const COOP_SPAWN_OFFSETS: PackedVector2Array = [
 	Vector2(-80.0, 0.0),
 	Vector2(0.0, 80.0),
 ]
-
-@export var debug_telemetry_enabled: bool = false
-@export_file("*.tscn") var next_level_scene_path: String = ""
 
 var _score: int = 0
 var _waves_survived: int = 0
@@ -41,24 +37,27 @@ var _restarting: bool = false
 var _run_id: String = ""
 var _run_seed: int = 0
 var _current_wave: int = 1
-var _transitioning: bool = false
 var _alive_players: int = 1
 var _ambient_player: AudioStreamPlayer = null
 var _awaiting_extraction: bool = false
 
 
 func _ready() -> void:
+	super._ready()
 	_init_run_identity()
 	GameStateManager.change_state(GameStateManager.State.PLAYING)
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_start_ambient_bed()
 
-	# Collect spawn points from scene tree
+	# Collect spawn points from direct scene hierarchy and any RoomTemplate children.
 	var points: Array[Node2D] = []
 	for child: Node in spawn_points_container.get_children():
 		var point := child as Node2D
 		if point != null:
 			points.append(point)
+	for rp: Node2D in get_room_spawn_points():
+		if not points.has(rp):
+			points.append(rp)
 	wave_spawner.spawn_points = points
 
 	# Bind HUD to player 1 health
@@ -66,7 +65,7 @@ func _ready() -> void:
 	hud.set_total_waves(wave_spawner.get_total_waves())
 	hud.set_wave(_current_wave)
 	hud.retry_pressed.connect(_restart_run)
-	hud.menu_pressed.connect(_return_to_main_menu)
+	hud.menu_pressed.connect(go_to_main_menu)
 
 	# Track alive players (starts at 1 for the scene player)
 	_alive_players = CoopManager.player_count
@@ -192,6 +191,12 @@ func _complete_level_run() -> void:
 		else:
 			push_warning("Configured next_level_scene_path does not exist: %s" % next_level_scene_path)
 
+
+## Called by [method LevelBase.go_to_next_level] when no valid next-level path
+## is configured.  This override updates the HUD with final results, triggers
+## the victory music, and prints a run summary in addition to the base state
+## change — behaviours specific to the scored wave-runner format.
+func _on_no_next_level() -> void:
 	_run_finished = true
 	GameStateManager.change_state(GameStateManager.State.VICTORY)
 	hud.show_final_results(_score, _current_wave, "Demo Complete")
@@ -208,7 +213,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 		if event.is_action_pressed("pause"):
 			_restarting = true
-			_return_to_main_menu()
+			go_to_main_menu()
 			get_viewport().set_input_as_handled()
 			return
 
@@ -275,24 +280,6 @@ func _restart_run() -> void:
 	_transitioning = true
 	get_tree().paused = false
 	get_tree().reload_current_scene()
-
-
-func _go_to_next_level() -> void:
-	if _transitioning:
-		return
-	_transitioning = true
-	get_tree().paused = false
-	GameStateManager.change_state(GameStateManager.State.PLAYING)
-	get_tree().change_scene_to_file(next_level_scene_path)
-
-
-func _return_to_main_menu() -> void:
-	if _transitioning:
-		return
-	_transitioning = true
-	get_tree().paused = false
-	GameStateManager.change_state(GameStateManager.State.MAIN_MENU)
-	get_tree().change_scene_to_file(MAIN_MENU_SCENE_PATH)
 
 
 func _start_ambient_bed() -> void:

@@ -1,7 +1,7 @@
 ## PlayerController — acceleration-based twin-stick movement with weapon firing.
 ##
 ## Requires a [HealthComponent] child node named "HealthComponent".
-## Set [member weapon_path] in the inspector to point to a [BaseWeapon] child.
+## Optionally supports [WeaponManager] for multiple weapons, or a single [BaseWeapon].
 class_name PlayerController
 extends CharacterBody2D
 
@@ -20,14 +20,15 @@ signal died
 @export var clamp_to_playfield: bool = true
 @export var playfield_bounds: Rect2 = Rect2(Vector2(-620.0, -340.0), Vector2(1240.0, 680.0))
 
-## NodePath to the active [BaseWeapon] child. Set in the inspector.
-@export var weapon_path: NodePath = NodePath("WeaponMount/BasicBlaster")
+## NodePath to the [WeaponManager] or [BaseWeapon] child. Set in the inspector.
+@export var weapon_path: NodePath = NodePath("WeaponMount")
 
 ## Input device index for local co-op. -1 = keyboard + mouse (player 1); 0+ = gamepad slot.
 @export var device_id: int = -1
 
 @onready var health_component: HealthComponent = $HealthComponent
 
+var _weapon_manager: WeaponManager = null
 var _weapon: BaseWeapon = null
 var _fire_cooldown: float = 0.0
 var _normalized_bounds: Rect2
@@ -45,14 +46,24 @@ func _ready() -> void:
 	)
 	health_component.died.connect(_on_health_died)
 	health_component.invulnerability_changed.connect(_on_invulnerability_changed)
+
+	# Support both WeaponManager and direct BaseWeapon
 	if not weapon_path.is_empty():
-		_weapon = get_node_or_null(weapon_path) as BaseWeapon
+		var node := get_node_or_null(weapon_path)
+		if node is WeaponManager:
+			_weapon_manager = node as WeaponManager
+			_weapon = _weapon_manager.get_active_weapon()
+		elif node is BaseWeapon:
+			_weapon = node as BaseWeapon
+
 	_damage_overlay = get_tree().root.find_child("DamageOverlay", true, false) as ColorRect
 
 
 func _physics_process(delta: float) -> void:
 	_handle_movement(delta)
 	_handle_aim()
+	_handle_weapon_switching()
+	_handle_reload()
 	_handle_fire(delta)
 	move_and_slide()
 	if clamp_to_playfield:
@@ -96,17 +107,63 @@ func _handle_fire(delta: float) -> void:
 		should_fire = Input.is_action_pressed("fire")
 	else:
 		should_fire = Input.get_joy_axis(device_id, JOY_AXIS_TRIGGER_RIGHT) > 0.5
+
 	if should_fire and _fire_cooldown <= 0.0:
-		_fire()
+		_fire(should_fire)
 
 
-func _fire() -> void:
+func _handle_weapon_switching() -> void:
+	if _weapon_manager == null:
+		return
+
+	if device_id < 0:
+		# Mouse wheel for weapon switching
+		if Input.is_action_just_pressed("weapon_next"):
+			_weapon_manager.next_weapon()
+			_weapon = _weapon_manager.get_active_weapon()
+		elif Input.is_action_just_pressed("weapon_prev"):
+			_weapon_manager.prev_weapon()
+			_weapon = _weapon_manager.get_active_weapon()
+	else:
+		# D-pad for gamepad weapon switching
+		if Input.is_joy_button_pressed(device_id, JOY_BUTTON_DPAD_RIGHT):
+			_weapon_manager.next_weapon()
+			_weapon = _weapon_manager.get_active_weapon()
+		elif Input.is_joy_button_pressed(device_id, JOY_BUTTON_DPAD_LEFT):
+			_weapon_manager.prev_weapon()
+			_weapon = _weapon_manager.get_active_weapon()
+
+
+func _handle_reload() -> void:
+	var should_reload: bool
+	if device_id < 0:
+		should_reload = Input.is_action_just_pressed("reload")
+	else:
+		should_reload = Input.is_joy_button_pressed(device_id, JOY_BUTTON_X)
+
+	if should_reload:
+		if _weapon_manager != null:
+			_weapon_manager.reload()
+		elif _weapon != null:
+			_weapon.reload()
+
+
+func _fire(trigger_held: bool) -> void:
 	if _weapon == null:
 		return
+
 	var direction: Vector2 = Vector2.RIGHT.rotated(rotation)
-	_weapon.fire(direction)
-	fired.emit(direction)
-	_fire_cooldown = _weapon.fire_rate
+	var did_fire: bool = false
+
+	if _weapon_manager != null:
+		did_fire = _weapon_manager.try_fire(direction, trigger_held)
+	else:
+		did_fire = _weapon.try_fire(direction, trigger_held)
+
+	if did_fire:
+		fired.emit(direction)
+		var effective_fire_rate := _weapon.get_effective_fire_rate() if _weapon != null else 0.2
+		_fire_cooldown = effective_fire_rate
 
 
 ## Delegate incoming damage to the HealthComponent.
