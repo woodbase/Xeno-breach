@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/test_level.gd" id="1_level"]
 [ext_resource type="Script" path="res://scripts/levels/placeholder_tilemap.gd" id="11_tilemap_script"]
@@ -15,6 +15,7 @@
 [ext_resource type="Resource" path="res://data/waves/wave_05.tres" id="10_wave_05"]
 [ext_resource type="Script" path="res://scripts/levels/navigation_zone.gd" id="12_nav_zone"]
 [ext_resource type="Script" path="res://scripts/levels/spawn_region.gd" id="13_spawn_region"]
+[ext_resource type="Script" path="res://scripts/visual/level_lighting.gd" id="14_level_lighting"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_obstacle_h"]
 size = Vector2(280, 40)
@@ -34,6 +35,12 @@ radius = 72.0
 [node name="Level02" type="Node2D"]
 script = ExtResource("1_level")
 debug_telemetry_enabled = true
+
+[node name="LevelLighting" type="Node2D" parent="."]
+script = ExtResource("14_level_lighting")
+emergency_light_positions = Array[Vector2]([Vector2(610, -40)])
+terminal_light_positions = Array[Vector2]([Vector2(350, -290)])
+ambient_fill_enabled = true
 
 [node name="Background" type="TextureRect" parent="."]
 offset_left = -640.0
@@ -156,6 +163,11 @@ shape = SubResource("RectangleShape2D_obstacle_h")
 polygon = PackedVector2Array(-140, -20, 140, -20, 140, 20, -140, 20)
 color = Color(0.22, 0.22, 0.3, 1)
 
+[node name="RimHighlight" type="Polygon2D" parent="Obstacles/CenterBarrier"]
+polygon = PackedVector2Array(-140, -20, 140, -20, 140, -16, -140, -16)
+color = Color(0.45, 0.5, 0.7, 0.6)
+z_index = 1
+
 [node name="LeftFlankPillar" type="StaticBody2D" parent="Obstacles"]
 collision_layer = 4
 collision_mask = 0
@@ -167,6 +179,11 @@ shape = SubResource("RectangleShape2D_flank_pillar")
 [node name="Body" type="Polygon2D" parent="Obstacles/LeftFlankPillar"]
 polygon = PackedVector2Array(-20, -100, 20, -100, 20, 100, -20, 100)
 color = Color(0.2, 0.24, 0.34, 1)
+
+[node name="RimHighlight" type="Polygon2D" parent="Obstacles/LeftFlankPillar"]
+polygon = PackedVector2Array(-20, -100, -16, -100, -16, 100, -20, 100)
+color = Color(0.45, 0.5, 0.7, 0.6)
+z_index = 1
 
 [node name="RightFlankPillar" type="StaticBody2D" parent="Obstacles"]
 collision_layer = 4
@@ -180,6 +197,11 @@ shape = SubResource("RectangleShape2D_flank_pillar")
 polygon = PackedVector2Array(-20, -100, 20, -100, 20, 100, -20, 100)
 color = Color(0.2, 0.24, 0.34, 1)
 
+[node name="RimHighlight" type="Polygon2D" parent="Obstacles/RightFlankPillar"]
+polygon = PackedVector2Array(-20, -100, -16, -100, -16, 100, -20, 100)
+color = Color(0.45, 0.5, 0.7, 0.6)
+z_index = 1
+
 [node name="EntryWallLeft" type="StaticBody2D" parent="Obstacles"]
 collision_layer = 4
 collision_mask = 0
@@ -191,6 +213,11 @@ shape = SubResource("RectangleShape2D_entry_wall")
 [node name="Body" type="Polygon2D" parent="Obstacles/EntryWallLeft"]
 polygon = PackedVector2Array(-80, -20, 80, -20, 80, 20, -80, 20)
 color = Color(0.2, 0.24, 0.34, 1)
+
+[node name="RimHighlight" type="Polygon2D" parent="Obstacles/EntryWallLeft"]
+polygon = PackedVector2Array(-80, -20, 80, -20, 80, -16, -80, -16)
+color = Color(0.45, 0.5, 0.7, 0.6)
+z_index = 1
 
 [node name="EntryWallRight" type="StaticBody2D" parent="Obstacles"]
 collision_layer = 4
@@ -204,6 +231,11 @@ shape = SubResource("RectangleShape2D_entry_wall")
 polygon = PackedVector2Array(-80, -20, 80, -20, 80, 20, -80, 20)
 color = Color(0.2, 0.24, 0.34, 1)
 
+[node name="RimHighlight" type="Polygon2D" parent="Obstacles/EntryWallRight"]
+polygon = PackedVector2Array(-80, -20, 80, -20, 80, -16, -80, -16)
+color = Color(0.45, 0.5, 0.7, 0.6)
+z_index = 1
+
 [node name="TopCoverLeft" type="StaticBody2D" parent="Obstacles"]
 collision_layer = 4
 collision_mask = 0
@@ -216,6 +248,11 @@ shape = SubResource("RectangleShape2D_top_cover")
 polygon = PackedVector2Array(-70, -20, 70, -20, 70, 20, -70, 20)
 color = Color(0.2, 0.24, 0.34, 1)
 
+[node name="RimHighlight" type="Polygon2D" parent="Obstacles/TopCoverLeft"]
+polygon = PackedVector2Array(-70, -20, 70, -20, 70, -16, -70, -16)
+color = Color(0.45, 0.5, 0.7, 0.6)
+z_index = 1
+
 [node name="TopCoverRight" type="StaticBody2D" parent="Obstacles"]
 collision_layer = 4
 collision_mask = 0
@@ -227,6 +264,11 @@ shape = SubResource("RectangleShape2D_top_cover")
 [node name="Body" type="Polygon2D" parent="Obstacles/TopCoverRight"]
 polygon = PackedVector2Array(-70, -20, 70, -20, 70, 20, -70, 20)
 color = Color(0.2, 0.24, 0.34, 1)
+
+[node name="RimHighlight" type="Polygon2D" parent="Obstacles/TopCoverRight"]
+polygon = PackedVector2Array(-70, -20, 70, -20, 70, -16, -70, -16)
+color = Color(0.45, 0.5, 0.7, 0.6)
+z_index = 1
 
 [node name="ProgressionPath" type="Node2D" parent="."]
 z_index = -7

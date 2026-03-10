@@ -32,6 +32,13 @@ extends Node2D
 @onready var _walls_container: Node2D = get_node_or_null("Walls") as Node2D
 @onready var _floor_polygon: Polygon2D = get_node_or_null("Floor") as Polygon2D
 
+## Border thickness (in pixels) drawn around the floor interior edge for depth.
+const FLOOR_BORDER_THICKNESS: float = 6.0
+## Color of the floor border stripe.
+const FLOOR_BORDER_COLOR: Color = Color(0.28, 0.3, 0.42, 0.7)
+
+var _floor_border: Polygon2D = null
+
 
 func _ready() -> void:
 	_update_floor_visual()
@@ -49,6 +56,25 @@ func _update_floor_visual() -> void:
 		Vector2(-w, -h), Vector2(w, -h), Vector2(w, h), Vector2(-w, h),
 	])
 	_floor_polygon.color = floor_color
+	_update_floor_border(w, h)
+
+
+func _update_floor_border(w: float, h: float) -> void:
+	if _floor_border == null:
+		_floor_border = Polygon2D.new()
+		_floor_border.name = "FloorBorder"
+		_floor_border.z_index = 1
+		add_child(_floor_border)
+	var t: float = FLOOR_BORDER_THICKNESS
+	# Build a hollow border by using a polygon array (outer ring minus inner cutout).
+	# Godot Polygon2D supports concave shapes through the vertex list winding.
+	# We approximate the border as four thin rectangles (one per edge).
+	# Simplest approach: draw the top border strip only, as a visual accent.
+	_floor_border.polygon = PackedVector2Array([
+		Vector2(-w, -h), Vector2(w, -h),
+		Vector2(w, -h + t), Vector2(-w, -h + t),
+	])
+	_floor_border.color = FLOOR_BORDER_COLOR
 
 
 # ── Boundary walls ────────────────────────────────────────────────────────────
