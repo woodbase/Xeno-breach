@@ -4,6 +4,8 @@ extends Area2D
 
 signal player_extracted
 
+@export var label_text: String = "Extraction"
+
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 @onready var indicator: Label = $Indicator
 
@@ -11,6 +13,7 @@ var _active: bool = false
 
 
 func _ready() -> void:
+	indicator.text = label_text
 	body_entered.connect(_on_body_entered)
 	set_active(false)
 
