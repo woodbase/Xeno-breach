@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1_enemy_data"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/enemy_projectile.tscn" id="2_projectile"]
+
+[resource]
+script = ExtResource("1_enemy_data")
+enemy_name = "Brute"
+max_health = 80.0
+move_speed = 90.0
+detection_range = 340.0
+attack_range = 290.0
+damage = 14.0
+attack_cooldown = 1.35
+patrol_enabled = false
+patrol_radius = 80.0
+projectile_scene = ExtResource("2_projectile")
+projectile_speed = 300.0

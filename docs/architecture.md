@@ -85,6 +85,62 @@ without touching script logic.
 
 ---
 
+## Enemy Framework
+
+### EnemyBase (`scripts/ai/enemy_base.gd`)
+
+All enemies extend `EnemyBase` (a `CharacterBody2D`). The class owns a four-state AI:
+
+| State | Condition | Behaviour |
+|---|---|---|
+| IDLE | No target and patrol disabled | Decelerates to rest |
+| PATROL | No target and `patrol_enabled = true` | Shuttles between two auto-generated waypoints |
+| CHASE | Target within `detection_range` | Moves toward target at `move_speed` |
+| ATTACK | Target within `attack_range` | Fires projectile or applies melee damage on cooldown |
+
+### Health and Damage
+
+Every enemy carries a `HealthComponent` child node. Damage is applied by:
+
+```gdscript
+var hc: HealthComponent = enemy.get_node_or_null("HealthComponent")
+if hc != null:
+    hc.take_damage(amount)
+```
+
+### Death State
+
+When `HealthComponent.died` fires, `EnemyBase`:
+1. Sets `_is_dying = true` — physics updates halt immediately.
+2. Disables the collision shape and clears collision layers.
+3. Fades `Body` to transparent over 0.3 s via a `Tween`.
+4. Calls `queue_free()` and emits `EnemyBase.died`.
+
+### Data-Driven Configuration
+
+Assign an `EnemyData` resource to `EnemyBase.data`. On `_ready()` all exported stats
+(speed, health, ranges, damage, patrol settings, projectile) are applied from the resource.
+Call `apply_data()` to re-apply after a hot-swap.
+
+Pre-authored resources live in `resources/enemies/`:
+
+| File | Enemy |
+|---|---|
+| `xeno_crawler_data.tres` | Xeno Crawler (melee, patrol) |
+| `enemy_brute_data.tres` | Brute (slow, high HP, ranged) |
+| `enemy_striker_data.tres` | Striker (fast, low HP, ranged) |
+
+### Demo Enemy — Xeno Crawler
+
+Scene: `scenes/enemies/xeno_crawler.tscn`  
+Data: `resources/enemies/xeno_crawler_data.tres`
+
+The Xeno Crawler is a close-range melee enemy. It patrols its spawn area, detects the
+player within 180 units, chases, and attacks at 45 units with a 0.8 s cooldown.
+It has 40 HP and a green tint to distinguish it visually.
+
+---
+
 ## Physics Layer Map
 
 | Layer | Bitmask | Used by |
@@ -103,8 +159,9 @@ Player projectile `collision_mask = 6` → hits enemies (2) + world (4).
 
 ### New enemy type
 1. Duplicate `scenes/enemies/enemy_base.tscn`.
-2. Override exported properties (speed, health, damage, ranges).
-3. Optionally subclass `enemy_base.gd` for unique behaviour.
+2. Create a new `EnemyData` resource in `resources/enemies/` and set all stats.
+3. Assign the resource to the `data` export on the scene root — stats are applied on `_ready()`.
+4. Optionally subclass `enemy_base.gd` for unique behaviour (charge attacks, special abilities, etc.).
 
 ### New weapon
 1. Duplicate `scenes/weapons/base_weapon.tscn`.
