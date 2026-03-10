@@ -185,9 +185,9 @@ Story Points: 3
 
 Tasks:
 
-- [ ] Exit trigger
+- [x] Exit trigger
 - [x] Victory screen
-- [ ] Demo completion screen
+- [x] Demo completion screen
 
 ---
 
