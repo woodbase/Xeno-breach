@@ -12,6 +12,27 @@ muzzle_offset = Vector2(30, 0)
 projectile_scene = ExtResource("2_proj")
 impact_effect_scene = ExtResource("3_impact")
 
+[node name="Model" type="Node2D" parent="."]
+z_index = 1
+
+[node name="Frame" type="Polygon2D" parent="Model"]
+polygon = PackedVector2Array(-28, 6, -18, -8, 18, -12, 30, -6, 30, 6, 12, 10, -18, 12)
+color = Color(0.14, 0.16, 0.2, 1)
+
+[node name="Accent" type="Polygon2D" parent="Model"]
+polygon = PackedVector2Array(-20, -4, 8, -8, 18, -6, 20, 0, 18, 6, 8, 8, -12, 6, -20, 2)
+color = Color(0.36, 0.72, 0.9, 0.9)
+
+[node name="HeatSink" type="Polygon2D" parent="Model"]
+position = Vector2(-6, 0)
+polygon = PackedVector2Array(-10, -10, -4, -10, -4, 10, -10, 10)
+color = Color(0.2, 0.24, 0.32, 1)
+
+[node name="BarrelHighlight" type="Polygon2D" parent="Model"]
+position = Vector2(18, 0)
+polygon = PackedVector2Array(0, -5, 12, -5, 12, 5, 0, 5)
+color = Color(0.8, 0.52, 0.2, 0.85)
+
 [node name="MuzzleFlash" type="Node2D" parent="."]
 position = Vector2(30, 0)
 visible = false

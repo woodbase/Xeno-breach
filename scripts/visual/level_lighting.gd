@@ -39,21 +39,41 @@ extends Node2D
 @export var ambient_fill_enabled: bool = true
 @export var ambient_fill_position: Vector2 = Vector2.ZERO
 @export var ambient_fill_color: Color = Color(0.45, 0.45, 0.65, 1.0)
+@export var animate_lights: bool = true
 
 @export var emergency_light_color: Color = Color(1.0, 0.18, 0.1, 1.0)
 @export var terminal_light_color: Color = Color(0.1, 0.85, 0.95, 1.0)
 
 var _biome_profile: BiomeProfile = null
+var _emergency_lights: Array[PointLight2D] = []
+var _terminal_lights: Array[PointLight2D] = []
+var _ambient_fill: PointLight2D = null
+var _time_accum: float = 0.0
 
 
 func _ready() -> void:
 	_apply_biome_profile()
 	_add_canvas_modulate()
 	var tex: GradientTexture2D = _make_radial_texture()
-	_spawn_emergency_lights(tex)
-	_spawn_terminal_lights(tex)
+	_emergency_lights = _spawn_emergency_lights(tex)
+	_terminal_lights = _spawn_terminal_lights(tex)
 	if ambient_fill_enabled:
-		_spawn_ambient_fill(tex)
+		_ambient_fill = _spawn_ambient_fill(tex)
+
+
+func _process(delta: float) -> void:
+	if not animate_lights or (_emergency_lights.is_empty() and _terminal_lights.is_empty()):
+		return
+	_time_accum += delta
+	var flicker: float = 1.0 + sin(_time_accum * 7.0) * 0.08
+	for light: PointLight2D in _emergency_lights:
+		if light != null:
+			light.energy = 1.25 * flicker + randf_range(-0.04, 0.04)
+
+	var pulse: float = 0.9 + sin(_time_accum * 3.2) * 0.05
+	for light: PointLight2D in _terminal_lights:
+		if light != null:
+			light.energy = 0.85 * pulse
 
 
 # ── Canvas modulate ───────────────────────────────────────────────────────────
@@ -67,7 +87,8 @@ func _add_canvas_modulate() -> void:
 
 # ── Light spawning ────────────────────────────────────────────────────────────
 
-func _spawn_emergency_lights(tex: GradientTexture2D) -> void:
+func _spawn_emergency_lights(tex: GradientTexture2D) -> Array[PointLight2D]:
+	var lights: Array[PointLight2D] = []
 	for pos: Vector2 in emergency_light_positions:
 		var light := PointLight2D.new()
 		light.texture = tex
@@ -76,9 +97,12 @@ func _spawn_emergency_lights(tex: GradientTexture2D) -> void:
 		light.energy = 1.3
 		light.position = pos
 		add_child(light)
+		lights.append(light)
+	return lights
 
 
-func _spawn_terminal_lights(tex: GradientTexture2D) -> void:
+func _spawn_terminal_lights(tex: GradientTexture2D) -> Array[PointLight2D]:
+	var lights: Array[PointLight2D] = []
 	for pos: Vector2 in terminal_light_positions:
 		var light := PointLight2D.new()
 		light.texture = tex
@@ -87,9 +111,11 @@ func _spawn_terminal_lights(tex: GradientTexture2D) -> void:
 		light.energy = 0.9
 		light.position = pos
 		add_child(light)
+		lights.append(light)
+	return lights
 
 
-func _spawn_ambient_fill(tex: GradientTexture2D) -> void:
+func _spawn_ambient_fill(tex: GradientTexture2D) -> PointLight2D:
 	var light := PointLight2D.new()
 	light.texture = tex
 	light.texture_scale = 10.0
@@ -97,6 +123,7 @@ func _spawn_ambient_fill(tex: GradientTexture2D) -> void:
 	light.energy = 0.4
 	light.position = ambient_fill_position
 	add_child(light)
+	return light
 
 
 # ── Texture factory ───────────────────────────────────────────────────────────
