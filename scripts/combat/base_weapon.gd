@@ -46,6 +46,7 @@ enum AttackType {
 @export_group("Projectile Settings")
 @export var projectile_scene: PackedScene
 @export var muzzle_offset: Vector2 = Vector2(32.0, 0.0)
+@export var impact_effect_scene: PackedScene
 
 @export_group("Hitscan Settings")
 @export var hitscan_range: float = 1000.0
@@ -284,9 +285,16 @@ func can_fire() -> bool:
 
 
 func _spawn_impact_at(position: Vector2) -> void:
-	# This would spawn an impact effect at the given position
-	# For now, we'll rely on the projectile's impact effect
-	pass
+	if impact_effect_scene == null:
+		return
+	var level: Node = get_tree().current_scene
+	if level == null:
+		return
+	var effect: Node2D = impact_effect_scene.instantiate() as Node2D
+	if effect == null:
+		return
+	effect.global_position = position
+	level.add_child(effect)
 
 
 func _show_muzzle_flash() -> void:

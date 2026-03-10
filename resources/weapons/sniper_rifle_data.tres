@@ -1,7 +1,8 @@
-[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3 uid="uid://c3xvj9qxpk8rnf"]
+[gd_resource type="Resource" script_class="WeaponData" load_steps=4 format=3 uid="uid://c3xvj9qxpk8rnf"]
 
 [ext_resource type="Script" path="res://scripts/data/weapon_data.gd" id="1_sniper"]
 [ext_resource type="PackedScene" uid="uid://d2wrs5vy5cqsm" path="res://scenes/weapons/projectile.tscn" id="2_projectile"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/impact_effect.tscn" id="3_impact"]
 
 [resource]
 script = ExtResource("1_sniper")
@@ -16,6 +17,7 @@ attack_type = 1
 projectile_speed = 1200.0
 projectile_lifetime = 3.0
 projectile_scene = ExtResource("2_projectile")
+impact_effect_scene = ExtResource("3_impact")
 muzzle_offset = Vector2(40, 0)
 hitscan_range = 2000.0
 hitscan_pierce_count = 2

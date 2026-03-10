@@ -240,6 +240,17 @@ func test_weapon_data_applies_correctly() -> void:
 	assert_eq(weapon.current_ammo, 20, "Current ammo should be set to max")
 
 
+## Test WeaponData applies impact_effect_scene to weapon
+func test_weapon_data_applies_impact_effect_scene() -> void:
+	var weapon_data := WeaponData.new()
+	var dummy_scene := PackedScene.new()
+	weapon_data.impact_effect_scene = dummy_scene
+
+	weapon_data.apply_to_weapon(weapon)
+
+	assert_eq(weapon.impact_effect_scene, dummy_scene, "impact_effect_scene should be applied to weapon")
+
+
 ## Test ammo_changed signal
 func test_ammo_changed_signal_emitted() -> void:
 	weapon.max_ammo = 10
