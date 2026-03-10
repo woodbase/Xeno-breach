@@ -67,6 +67,9 @@ func _ready() -> void:
 	hud.set_wave(_current_wave)
 	hud.retry_pressed.connect(_restart_run)
 	hud.menu_pressed.connect(go_to_main_menu)
+	hud.resume_pressed.connect(_toggle_pause)
+	hud.restart_pressed.connect(_restart_run)
+	hud.quit_pressed.connect(func() -> void: get_tree().quit())
 
 	# Track alive players (starts at 1 for the scene player)
 	_alive_players = CoopManager.player_count
@@ -211,9 +214,11 @@ func _toggle_pause() -> void:
 	if get_tree().paused:
 		get_tree().paused = false
 		GameStateManager.change_state(GameStateManager.State.PLAYING)
+		hud.hide_pause_menu()
 	else:
 		get_tree().paused = true
 		GameStateManager.change_state(GameStateManager.State.PAUSED)
+		hud.show_pause_menu()
 
 
 func _on_enemy_killed() -> void:

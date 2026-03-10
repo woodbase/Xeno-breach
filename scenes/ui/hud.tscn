@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_hud"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="2_pause_menu"]
 
 [node name="HUD" type="CanvasLayer"]
 layer = 10
@@ -188,3 +189,9 @@ offset_right = 0.0
 offset_bottom = 0.0
 mouse_filter = 2
 color = Color(1, 0, 0, 0)
+
+[node name="PauseMenu" parent="." instance=ExtResource("2_pause_menu")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
