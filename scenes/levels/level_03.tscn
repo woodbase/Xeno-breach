@@ -16,7 +16,7 @@
 [ext_resource type="Script" path="res://scripts/levels/navigation_zone.gd" id="12_nav_zone"]
 [ext_resource type="Script" path="res://scripts/levels/spawn_region.gd" id="13_spawn_region"]
 [ext_resource type="Script" path="res://scripts/visual/level_lighting.gd" id="14_level_lighting"]
-[ext_resource type="Resource" path="res://resources/biomes/reactor_breach_biome.tres" id="15_biome_reactor"]
+[ext_resource type="Resource" path="res://resources/biomes/frozen_hold_biome.tres" id="15_biome_frozen"]
 [ext_resource type="Script" path="res://scripts/levels/environmental_hazard.gd" id="16_env_hazard"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_obstacle_h"]
@@ -40,11 +40,11 @@ size = Vector2(260, 120)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_coolant"]
 size = Vector2(180, 140)
 
-[node name="Level02" type="Node2D"]
+[node name="Level03" type="Node2D"]
 script = ExtResource("1_level")
 debug_telemetry_enabled = true
-biome_profile = ExtResource("15_biome_reactor")
-next_level_scene_path = "res://scenes/levels/level_03.tscn"
+biome_profile = ExtResource("15_biome_frozen")
+next_level_scene_path = ""
 
 [node name="LevelLighting" type="Node2D" parent="."]
 script = ExtResource("14_level_lighting")
@@ -59,7 +59,7 @@ offset_right = 640.0
 offset_bottom = 360.0
 texture = ExtResource("12_background_texture")
 stretch_mode = 2
-modulate = Color(0.18, 0.12, 0.22, 0.85)
+modulate = Color(0.12, 0.2, 0.26, 0.82)
 z_index = -10
 
 [node name="TileMap" type="TileMap" parent="."]
@@ -282,42 +282,42 @@ z_index = 1
 
 [node name="Hazards" type="Node2D" parent="."]
 
-[node name="RadiationLeak" type="Area2D" parent="Hazards"]
-position = Vector2(40, -140)
-script = ExtResource("16_env_hazard")
-collision_layer = 0
-collision_mask = 3
-hazard_name = "Radiation Hotspot"
-damage_per_second = 18.0
-tick_interval = 0.5
-affects_players = true
-affects_enemies = true
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Hazards/RadiationLeak"]
-shape = SubResource("RectangleShape2D_radiation")
-
-[node name="Glow" type="Polygon2D" parent="Hazards/RadiationLeak"]
-polygon = PackedVector2Array(-130, -60, 130, -60, 130, 60, -130, 60)
-color = Color(1, 0.38, 0.14, 0.35)
-z_index = -6
-
-[node name="CoolantSpill" type="Area2D" parent="Hazards"]
-position = Vector2(-360, 200)
+[node name="CryoVent" type="Area2D" parent="Hazards"]
+position = Vector2(20, -160)
 script = ExtResource("16_env_hazard")
 collision_layer = 0
 collision_mask = 1
-hazard_name = "Coolant Spill"
-damage_per_second = 12.0
-tick_interval = 0.4
+hazard_name = "Cryo Vent"
+damage_per_second = 10.0
+tick_interval = 0.5
 affects_players = true
 affects_enemies = false
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Hazards/CoolantSpill"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hazards/CryoVent"]
+shape = SubResource("RectangleShape2D_radiation")
+
+[node name="Glow" type="Polygon2D" parent="Hazards/CryoVent"]
+polygon = PackedVector2Array(-130, -60, 130, -60, 130, 60, -130, 60)
+color = Color(0.38, 0.9, 1, 0.28)
+z_index = -6
+
+[node name="FrozenFloor" type="Area2D" parent="Hazards"]
+position = Vector2(-360, 210)
+script = ExtResource("16_env_hazard")
+collision_layer = 0
+collision_mask = 1
+hazard_name = "Frozen Coolant"
+damage_per_second = 8.0
+tick_interval = 0.35
+affects_players = true
+affects_enemies = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hazards/FrozenFloor"]
 shape = SubResource("RectangleShape2D_coolant")
 
-[node name="Glow" type="Polygon2D" parent="Hazards/CoolantSpill"]
+[node name="Glow" type="Polygon2D" parent="Hazards/FrozenFloor"]
 polygon = PackedVector2Array(-90, -70, 90, -70, 90, 70, -90, 70)
-color = Color(0.12, 0.86, 0.92, 0.32)
+color = Color(0.18, 0.82, 0.96, 0.26)
 z_index = -6
 
 [node name="ProgressionPath" type="Node2D" parent="."]
@@ -344,7 +344,7 @@ spawn_retry_count = 10
 
 [node name="NavigationZone" type="Node2D" parent="."]
 script = ExtResource("12_nav_zone")
-zone_id = "level_02_zone"
+zone_id = "level_03_zone"
 zone_half_extents = Vector2(520, 280)
 
 [node name="NavigationRegion2D" type="NavigationRegion2D" parent="NavigationZone"]

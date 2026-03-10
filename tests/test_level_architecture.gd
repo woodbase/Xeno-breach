@@ -34,6 +34,7 @@ func _run_all() -> void:
 	test_level_base_is_position_navigable_true()
 	test_level_base_is_position_navigable_false()
 	test_level_base_is_position_navigable_no_zones()
+	test_level_base_applies_biome_to_lighting()
 
 
 func _assert(condition: bool, name: String) -> void:
@@ -290,4 +291,19 @@ func test_level_base_is_position_navigable_no_zones() -> void:
 	add_child(level)
 	_assert(not level.is_position_navigable(Vector2(0.0, 0.0)),
 		"LevelBase.is_position_navigable() false when no navigation zones are registered")
+	level.queue_free()
+
+
+func test_level_base_applies_biome_to_lighting() -> void:
+	var level := LevelBase.new()
+	var lighting := LevelLighting.new()
+	var biome := BiomeProfile.new()
+	biome.ambient_color = Color(0.12, 0.34, 0.56, 1.0)
+	level.biome_profile = biome
+	level.add_child(lighting)
+	add_child(level)
+	_assert(
+		lighting.biome_profile == biome and lighting.ambient_color == biome.ambient_color,
+		"LevelBase applies biome profile to LevelLighting nodes"
+	)
 	level.queue_free()

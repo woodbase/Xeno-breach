@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BiomeProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/biome_profile.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+biome_id = &"reactor_breach"
+display_name = "Reactor Breach"
+description = "Overheated core access with irradiated steam and flickering amber warning lights."
+ambient_color = Color(0.32, 0.22, 0.14, 1)
+emergency_light_color = Color(1, 0.38, 0.08, 1)
+terminal_light_color = Color(0.08, 0.8, 0.6, 1)
+ambient_fill_color = Color(0.56, 0.38, 0.24, 1)
+signature_hazards = Array[String]([&"radiation_hotspot", &"steam_vent"])
