@@ -176,3 +176,14 @@ subclass that intercepts `take_damage` before applying it.
 `PlayerController` is a self-contained `CharacterBody2D`. Instantiate multiple
 player scenes; `WaveSpawner` accepts any `Node2D` as target — swap to a group or
 nearest-target strategy without touching enemy logic.
+
+### Biomes
+Create a `BiomeProfile` resource (`resources/biomes/*.tres`) to define ambient
+and light colours plus signature hazards. Assign it to the level root
+(`LevelBase.biome_profile`) and the `LevelLighting` will apply the palette.
+
+### Environmental hazards
+Use `EnvironmentalHazard` (Area2D) for radiation, coolant spills, or cryo vents.
+Attach a `CollisionShape2D`, set `damage_per_second` and `tick_interval`, and
+toggle `affects_players/enemies` as needed. Place hazards in a `Hazards` node
+within the level scene to keep layout organised.

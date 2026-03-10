@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BiomeProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/biome_profile.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+biome_id = &"frozen_hold"
+display_name = "Cryo Storage"
+description = "Frosted cargo decks with ruptured cryo lines casting cold teal light and low visibility fog."
+ambient_color = Color(0.18, 0.28, 0.32, 1)
+emergency_light_color = Color(0.78, 0.12, 0.12, 1)
+terminal_light_color = Color(0.14, 0.92, 0.88, 1)
+ambient_fill_color = Color(0.3, 0.52, 0.62, 1)
+signature_hazards = Array[String]([&"cryo_leak", &"frozen_floor"])

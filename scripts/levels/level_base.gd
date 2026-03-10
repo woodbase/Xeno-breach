@@ -31,14 +31,22 @@ const VICTORY_SCREEN_SCENE_PATH: String = "res://scenes/ui/victory_screen.tscn"
 ## [method _on_no_next_level] (shows the victory state by default).
 @export_file("*.tscn") var next_level_scene_path: String = ""
 
+## Optional biome metadata describing this level's visual theme.
+@export var biome_profile: BiomeProfile
+
 var _rooms: Array[RoomTemplate] = []
 var _navigation_zones: Array[NavigationZone] = []
 var _transitioning: bool = false
 
 
+func _enter_tree() -> void:
+	_apply_biome_profile_to_lighting()
+
+
 func _ready() -> void:
 	_collect_rooms()
 	_collect_navigation_zones()
+	_apply_biome_profile_to_lighting()
 	_on_level_ready()
 
 
@@ -147,3 +155,20 @@ func go_to_main_menu() -> void:
 	get_tree().paused = false
 	GameStateManager.change_state(GameStateManager.State.MAIN_MENU)
 	get_tree().change_scene_to_file(MAIN_MENU_SCENE_PATH)
+
+
+# ── Biome support ─────────────────────────────────────────────────────────────
+
+func _apply_biome_profile_to_lighting() -> void:
+	if biome_profile == null:
+		return
+	_walk_tree_for_lighting(self)
+
+
+func _walk_tree_for_lighting(node: Node) -> void:
+	for child: Node in node.get_children():
+		var lighting := child as LevelLighting
+		if lighting != null:
+			lighting.biome_profile = biome_profile
+		else:
+			_walk_tree_for_lighting(child)
