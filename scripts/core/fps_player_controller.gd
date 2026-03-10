@@ -53,7 +53,7 @@ func _ready() -> void:
 	add_to_group("player")
 	health_component.damaged.connect(func(amount: float) -> void:
 		damaged.emit(amount)
-		_play_damage_feedback()
+		_play_damage_feedback(amount)
 	)
 	health_component.died.connect(_on_health_died)
 	_damage_overlay = get_tree().root.find_child("DamageOverlay", true, false) as ColorRect
@@ -110,10 +110,14 @@ func take_damage(amount: float) -> void:
 
 
 ## Briefly flash the damage overlay red to give visual hit feedback.
-func _play_damage_feedback() -> void:
+func _play_damage_feedback(amount: float = 10.0) -> void:
+	if _damage_overlay == null:
+		_damage_overlay = get_tree().root.find_child("DamageOverlay", true, false) as ColorRect
 	if _damage_overlay == null:
 		return
-	_damage_overlay.color = Color(1.0, 0.0, 0.0, 0.5)
+	var max_health := maxf(1.0, health_component.max_health)
+	var alpha := clampf(amount / max_health * 1.5, 0.25, 0.8)
+	_damage_overlay.color = Color(1.0, 0.0, 0.0, alpha)
 	var timer := get_tree().create_timer(_damage_feedback_duration)
 	_damage_feedback_timer = timer
 	await timer.timeout
