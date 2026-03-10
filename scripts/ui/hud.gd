@@ -6,6 +6,9 @@ extends CanvasLayer
 
 signal retry_pressed
 signal menu_pressed
+signal resume_pressed
+signal restart_pressed
+signal quit_pressed
 
 @onready var health_bar: ProgressBar = $HealthContainer/HealthBar
 @onready var health_label: Label = $HealthContainer/HealthLabel
@@ -23,6 +26,7 @@ signal menu_pressed
 @onready var ammo_label: Label = $WeaponContainer/AmmoLabel
 @onready var reload_label: Label = $WeaponContainer/ReloadLabel
 @onready var crosshair: Control = $Crosshair
+@onready var pause_menu: PauseMenu = $PauseMenu
 
 var _total_waves: int = 0
 var _current_wave: int = 1
@@ -41,6 +45,10 @@ func _ready() -> void:
 	reload_label.visible = false
 	retry_button.pressed.connect(func() -> void: retry_pressed.emit())
 	menu_button.pressed.connect(func() -> void: menu_pressed.emit())
+	pause_menu.resume_pressed.connect(func() -> void: resume_pressed.emit())
+	pause_menu.restart_pressed.connect(func() -> void: restart_pressed.emit())
+	pause_menu.main_menu_pressed.connect(func() -> void: menu_pressed.emit())
+	pause_menu.quit_pressed.connect(func() -> void: quit_pressed.emit())
 
 
 func _process(_delta: float) -> void:
@@ -121,6 +129,16 @@ func show_final_results(score: int, waves_survived: int, title: String = "Run Co
 	final_score_label.text = "Score: %d" % score
 	game_over_panel.visible = true
 	retry_button.grab_focus()
+
+
+## Show the pause overlay.
+func show_pause_menu() -> void:
+	pause_menu.open()
+
+
+## Hide the pause overlay.
+func hide_pause_menu() -> void:
+	pause_menu.close()
 
 
 func _update_wave_label() -> void:
