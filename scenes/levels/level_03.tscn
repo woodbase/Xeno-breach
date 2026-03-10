@@ -48,9 +48,10 @@ next_level_scene_path = ""
 
 [node name="LevelLighting" type="Node2D" parent="."]
 script = ExtResource("14_level_lighting")
-emergency_light_positions = Array[Vector2]([Vector2(610, -40)])
-terminal_light_positions = Array[Vector2]([Vector2(350, -290)])
+emergency_light_positions = Array[Vector2]([Vector2(610, -40), Vector2(-560, 140)])
+terminal_light_positions = Array[Vector2]([Vector2(350, -290), Vector2(-260, -140)])
 ambient_fill_enabled = true
+ambient_fill_position = Vector2(0, 100)
 
 [node name="Background" type="TextureRect" parent="."]
 offset_left = -640.0
@@ -59,11 +60,14 @@ offset_right = 640.0
 offset_bottom = 360.0
 texture = ExtResource("12_background_texture")
 stretch_mode = 2
-modulate = Color(0.12, 0.2, 0.26, 0.82)
+modulate = Color(0.14, 0.22, 0.28, 0.86)
 z_index = -10
 
 [node name="TileMap" type="TileMap" parent="."]
 script = ExtResource("11_tilemap_script")
+floor_base_color = Color(0.08, 0.12, 0.16, 1)
+floor_rim_color = Color(0.2, 0.28, 0.32, 1)
+floor_detail_color = Color(0.36, 0.72, 0.82, 0.85)
 z_index = -9
 
 [node name="EnvironmentalStorytelling" type="Node2D" parent="."]

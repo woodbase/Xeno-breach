@@ -35,9 +35,10 @@ biome_profile = ExtResource("17_biome_derelict")
 
 [node name="LevelLighting" type="Node2D" parent="."]
 script = ExtResource("16_level_lighting")
-emergency_light_positions = Array[Vector2]([Vector2(-590, 20)])
-terminal_light_positions = Array[Vector2]([Vector2(440, -260)])
+emergency_light_positions = Array[Vector2]([Vector2(-590, 20), Vector2(580, -20)])
+terminal_light_positions = Array[Vector2]([Vector2(440, -260), Vector2(-220, 220)])
 ambient_fill_enabled = true
+ambient_fill_position = Vector2(0, 60)
 
 [node name="Background" type="TextureRect" parent="."]
 offset_left = -640.0
@@ -46,11 +47,14 @@ offset_right = 640.0
 offset_bottom = 360.0
 texture = ExtResource("11_background_texture")
 stretch_mode = 2
-modulate = Color(0.26, 0.26, 0.34, 0.72)
+modulate = Color(0.22, 0.26, 0.34, 0.82)
 z_index = -10
 
 [node name="TileMap" type="TileMap" parent="."]
 script = ExtResource("12_tilemap_script")
+floor_base_color = Color(0.14, 0.16, 0.2, 1)
+floor_rim_color = Color(0.28, 0.3, 0.36, 1)
+floor_detail_color = Color(0.48, 0.56, 0.72, 0.88)
 z_index = -9
 
 [node name="EnvironmentalStorytelling" type="Node2D" parent="."]
