@@ -161,6 +161,10 @@ func _on_all_waves_completed() -> void:
 	go_to_next_level()
 
 
+## Called by [method LevelBase.go_to_next_level] when no valid next-level path
+## is configured.  This override updates the HUD with final results, triggers
+## the victory music, and prints a run summary in addition to the base state
+## change — behaviours specific to the scored wave-runner format.
 func _on_no_next_level() -> void:
 	_run_finished = true
 	GameStateManager.change_state(GameStateManager.State.VICTORY)
