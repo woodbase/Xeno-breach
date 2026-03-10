@@ -28,6 +28,10 @@ signal state_changed(new_state: State, old_state: State)
 ## Optional data resource. When assigned, stats are loaded from it on [method _ready],
 ## overriding the individual export properties above.
 @export var data: EnemyData
+## Bounding rect passed to the internal [VisibleOnScreenNotifier2D].
+## Should cover the enemy's visible sprite area so that off-screen detection
+## is accurate.  Override in the inspector to match the actual sprite size.
+@export var visibility_rect: Rect2 = Rect2(-16.0, -16.0, 32.0, 32.0)
 @export_group("Feedback")
 @export var hit_stun_duration: float = 0.12
 @export var hit_effect_scene: PackedScene = preload("res://scenes/weapons/impact_effect.tscn")
@@ -61,9 +65,18 @@ const _PATROL_SPEED_RATIO: float = 0.5
 ## How often (in seconds) each enemy re-evaluates its state machine.
 ## Enemies are staggered by a random offset on [method _ready] to spread CPU cost.
 const _STATE_UPDATE_INTERVAL: float = 0.1
+## Reduced state update interval used while the enemy is outside the viewport.
+## Off-screen enemies need less reactive AI, so doubling the interval halves
+## the per-enemy state-machine overhead when many enemies are spawned.
+const _STATE_UPDATE_INTERVAL_OFFSCREEN: float = 0.25
 ## Minimum gap (seconds) between scene-tree player searches in [method _ensure_target].
 const _TARGET_SEARCH_INTERVAL: float = 0.5
 var _hit_stun_timer: float = 0.0
+## Tracks whether this enemy is currently visible inside any viewport.
+## Toggled by [VisibleOnScreenNotifier2D] callbacks. Defaults to [code]true[/code]
+## so enemies are treated as on-screen until the notifier has a chance to fire.
+var _is_on_screen: bool = true
+var _vis_notifier: VisibleOnScreenNotifier2D = null
 
 
 func _ready() -> void:
@@ -72,6 +85,7 @@ func _ready() -> void:
 	health_component.damaged.connect(_on_health_damaged)
 	_init_hit_flash()
 	_init_patrol()
+	_init_visibility_notifier()
 	# Stagger first state evaluation so enemies spawned together don't all
 	# update on the same physics frame, which would cause a CPU spike.
 	_state_timer = randf_range(0.0, _STATE_UPDATE_INTERVAL)
@@ -124,10 +138,11 @@ func _physics_process(delta: float) -> void:
 	if _target_search_cooldown > 0.0:
 		_target_search_cooldown -= delta
 	# Throttle state-machine evaluation to _STATE_UPDATE_INTERVAL seconds.
+	# Off-screen enemies use a longer interval to reduce CPU overhead.
 	# Movement (move_and_slide) still runs every frame for smooth physics.
 	_state_timer -= delta
 	if _state_timer <= 0.0:
-		_state_timer = _STATE_UPDATE_INTERVAL
+		_state_timer = _STATE_UPDATE_INTERVAL if _is_on_screen else _STATE_UPDATE_INTERVAL_OFFSCREEN
 		_update_state()
 	_process_state(delta)
 	move_and_slide()
@@ -228,6 +243,8 @@ func _on_health_died() -> void:
 	if _is_dying:
 		return
 	_is_dying = true
+	# Stop all per-frame work as soon as the death sequence begins.
+	set_physics_process(false)
 	AudioManager.play_sfx("enemy_death", global_position)
 	died.emit()
 	velocity = Vector2.ZERO
@@ -287,6 +304,25 @@ func _init_patrol() -> void:
 		_spawn_position - Vector2(patrol_radius, 0.0),
 	]
 	_patrol_index = 0
+
+
+## Create a [VisibleOnScreenNotifier2D] to track on-screen status.
+## When the enemy leaves the viewport [member _is_on_screen] is cleared,
+## triggering a longer state-update interval to reduce off-screen AI cost.
+func _init_visibility_notifier() -> void:
+	_vis_notifier = VisibleOnScreenNotifier2D.new()
+	_vis_notifier.rect = visibility_rect
+	add_child(_vis_notifier)
+	_vis_notifier.screen_entered.connect(_on_screen_entered)
+	_vis_notifier.screen_exited.connect(_on_screen_exited)
+
+
+func _on_screen_entered() -> void:
+	_is_on_screen = true
+
+
+func _on_screen_exited() -> void:
+	_is_on_screen = false
 
 
 func _process_patrol(delta: float) -> void:
