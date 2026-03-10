@@ -174,6 +174,8 @@ func _on_player_extracted() -> void:
 
 
 func _complete_level_run() -> void:
+	GameStateManager.final_score = _score
+	GameStateManager.final_waves_survived = _current_wave
 	go_to_next_level()
 
 
@@ -182,9 +184,6 @@ func _on_no_next_level() -> void:
 	_transitioning = true
 	GameStateManager.final_score = _score
 	GameStateManager.final_waves_survived = _current_wave
-	GameStateManager.change_state(GameStateManager.State.VICTORY)
-	hud.show_final_results(_score, _current_wave, "Demo Complete")
-	AudioManager.play_music("victory_theme")
 	print("VICTORY — all waves cleared! Score=%d" % _score)
 	get_tree().change_scene_to_file("res://scenes/ui/demo_end_screen.tscn")
 

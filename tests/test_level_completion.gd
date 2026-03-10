@@ -1,4 +1,5 @@
-## Unit tests for ExitTrigger activation, deactivation, and player detection.
+## Unit tests for ExitTrigger activation, deactivation, and player detection,
+## and for the GameStateManager data used by the victory screen.
 ##
 ## Tests cover:
 ##   • ExitTrigger starts inactive (hidden, monitoring disabled).
@@ -7,6 +8,7 @@
 ##   • player_extracted is NOT emitted while the trigger is inactive.
 ##   • player_extracted is NOT emitted for non-player bodies.
 ##   • player_extracted IS emitted when an active trigger detects a PlayerController.
+##   • GameStateManager carries score/waves/next_level_path to the victory screen.
 ##
 ## Run standalone: create a scene with a Node root, attach this script.
 extends Node
@@ -27,6 +29,8 @@ func _run_all() -> void:
 	test_exit_trigger_no_signal_when_inactive()
 	test_exit_trigger_no_signal_for_non_player_body()
 	test_exit_trigger_emits_signal_for_player()
+	test_game_state_manager_stores_victory_data()
+	test_game_state_manager_next_level_scene_path()
 
 
 func _assert(condition: bool, name: String) -> void:
@@ -115,3 +119,31 @@ func test_exit_trigger_emits_signal_for_player() -> void:
 	_assert(emitted, "player_extracted emitted for PlayerController when trigger is active")
 	player.queue_free()
 	et.queue_free()
+
+
+# ── Victory screen data tests ─────────────────────────────────────────────────
+
+func test_game_state_manager_stores_victory_data() -> void:
+	var prev_score: int = GameStateManager.final_score
+	var prev_waves: int = GameStateManager.final_waves_survived
+	GameStateManager.final_score = 1500
+	GameStateManager.final_waves_survived = 3
+	_assert(GameStateManager.final_score == 1500, "GameStateManager.final_score stores score for victory screen")
+	_assert(GameStateManager.final_waves_survived == 3, "GameStateManager.final_waves_survived stores waves for victory screen")
+	GameStateManager.final_score = prev_score
+	GameStateManager.final_waves_survived = prev_waves
+
+
+func test_game_state_manager_next_level_scene_path() -> void:
+	var prev_path: String = GameStateManager.next_level_scene_path
+	GameStateManager.next_level_scene_path = "res://scenes/levels/level_02.tscn"
+	_assert(
+		GameStateManager.next_level_scene_path == "res://scenes/levels/level_02.tscn",
+		"GameStateManager.next_level_scene_path stores next level for victory screen"
+	)
+	GameStateManager.next_level_scene_path = ""
+	_assert(
+		GameStateManager.next_level_scene_path.is_empty(),
+		"GameStateManager.next_level_scene_path can be cleared"
+	)
+	GameStateManager.next_level_scene_path = prev_path
