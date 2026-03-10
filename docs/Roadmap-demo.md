@@ -123,7 +123,7 @@ Tasks:
 - [x] Hit effects
 - [x] Enemy damage reaction
 - [x] Screen damage effect
-- [ ] Weapon recoil
+- [x] Weapon recoil
 - [x] Basic muzzle flash
 
 ---

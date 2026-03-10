@@ -35,6 +35,12 @@ extends Resource
 @export var infinite_ammo: bool = false
 @export var reload_time: float = 2.0
 
+@export_group("Recoil")
+## Rotation kick applied to the weapon per shot, in degrees.
+@export var recoil_amount: float = 5.0
+## How quickly (degrees per second) the recoil returns to rest.
+@export var recoil_recovery_speed: float = 120.0
+
 
 ## Apply this weapon data to a BaseWeapon instance.
 func apply_to_weapon(weapon: BaseWeapon) -> void:
@@ -55,5 +61,7 @@ func apply_to_weapon(weapon: BaseWeapon) -> void:
 	weapon.max_ammo = max_ammo
 	weapon.infinite_ammo = infinite_ammo
 	weapon.reload_time = reload_time
+	weapon.recoil_amount = recoil_amount
+	weapon.recoil_recovery_speed = recoil_recovery_speed
 	weapon.current_ammo = max_ammo
 

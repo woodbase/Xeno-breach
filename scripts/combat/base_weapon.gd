@@ -57,6 +57,13 @@ enum AttackType {
 @export var infinite_ammo: bool = false
 @export var reload_time: float = 2.0
 
+@export_group("Recoil")
+## Rotation applied to the weapon node per shot, in degrees. The weapon
+## kicks back by this amount and springs back to rest automatically.
+@export var recoil_amount: float = 5.0
+## How quickly (degrees per second) the recoil offset returns to zero.
+@export var recoil_recovery_speed: float = 120.0
+
 @export_group("Upgrade System")
 @export var upgrade_level: int = 0
 @export var damage_multiplier: float = 1.0
@@ -70,6 +77,7 @@ var is_reloading: bool = false
 
 var _muzzle_flash: CanvasItem = null
 var _flash_timer: float = 0.0
+var _recoil_offset: float = 0.0
 var _fire_audio: AudioStreamPlayer2D = null
 var _reload_timer: float = 0.0
 var _burst_shots_remaining: int = 0
@@ -91,6 +99,11 @@ func _process(delta: float) -> void:
 		_flash_timer -= delta
 		if _flash_timer <= 0.0 and _muzzle_flash != null:
 			_muzzle_flash.visible = false
+
+	if _recoil_offset != 0.0:
+		var step: float = recoil_recovery_speed * delta
+		_recoil_offset = move_toward(_recoil_offset, 0.0, step)
+		rotation_degrees = _recoil_offset
 
 	if is_reloading:
 		_reload_timer -= delta
@@ -159,6 +172,7 @@ func _fire_single(direction: Vector2) -> bool:
 
 	_show_muzzle_flash()
 	_play_fire_audio()
+	_apply_recoil()
 	return true
 
 
@@ -302,6 +316,13 @@ func _show_muzzle_flash() -> void:
 		return
 	_muzzle_flash.visible = true
 	_flash_timer = MUZZLE_FLASH_DURATION
+
+
+func _apply_recoil() -> void:
+	if recoil_amount == 0.0:
+		return
+	_recoil_offset += recoil_amount
+	rotation_degrees = _recoil_offset
 
 
 func _ensure_fire_audio() -> void:
