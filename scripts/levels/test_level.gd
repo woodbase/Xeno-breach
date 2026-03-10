@@ -126,18 +126,9 @@ func _on_any_player_died() -> void:
 		_run_finished = true
 		GameStateManager.change_state(GameStateManager.State.GAME_OVER)
 		hud.show_final_results(_score, _current_wave)
+		AudioManager.play_ui("game_over")
+		AudioManager.stop_music()
 		print("GAME OVER")
-	# Start combat music and station ambience
-	AudioManager.play_music("combat_theme")
-
-
-func _on_player_died() -> void:
-	_run_finished = true
-	GameStateManager.change_state(GameStateManager.State.GAME_OVER)
-	hud.show_final_results(_score, _current_wave)
-	AudioManager.play_ui("game_over")
-	AudioManager.stop_music()
-	print("GAME OVER")
 
 
 func _on_wave_started(wave_number: int) -> void:
@@ -183,13 +174,7 @@ func _on_player_extracted() -> void:
 
 
 func _complete_level_run() -> void:
-	if not next_level_scene_path.is_empty():
-		var has_next_level := ResourceLoader.exists(next_level_scene_path)
-		if has_next_level:
-			_go_to_next_level()
-			return
-		else:
-			push_warning("Configured next_level_scene_path does not exist: %s" % next_level_scene_path)
+	go_to_next_level()
 
 
 func _on_no_next_level() -> void:
