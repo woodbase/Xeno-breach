@@ -296,3 +296,76 @@ func test_reload_signals_emitted() -> void:
 	await wait_seconds(0.2)
 
 	assert_signal_emitted(weapon, "reload_completed", "reload_completed should emit after reload time")
+
+
+## Test that recoil offset is applied when firing
+func test_recoil_applied_on_fire() -> void:
+weapon.recoil_amount = 8.0
+weapon.recoil_recovery_speed = 120.0
+weapon.infinite_ammo = true
+weapon.attack_type = BaseWeapon.AttackType.HITSCAN
+weapon._ready()
+
+weapon._fire_single(Vector2.RIGHT)
+
+assert_true(weapon._recoil_offset > 0.0, "Recoil offset should be positive after firing")
+assert_eq(weapon.rotation_degrees, weapon._recoil_offset, "rotation_degrees should match recoil offset")
+
+
+## Test that recoil accumulates with repeated shots
+func test_recoil_accumulates_with_repeated_shots() -> void:
+weapon.recoil_amount = 4.0
+weapon.recoil_recovery_speed = 0.0
+weapon.infinite_ammo = true
+weapon.attack_type = BaseWeapon.AttackType.HITSCAN
+weapon._ready()
+
+weapon._fire_single(Vector2.RIGHT)
+var after_first: float = weapon._recoil_offset
+weapon._fire_single(Vector2.RIGHT)
+var after_second: float = weapon._recoil_offset
+
+assert_true(after_second > after_first, "Recoil offset should be larger after a second shot")
+
+
+## Test that recoil recovers towards zero over time
+func test_recoil_recovers_over_time() -> void:
+weapon.recoil_amount = 10.0
+weapon.recoil_recovery_speed = 200.0
+weapon.infinite_ammo = true
+weapon.attack_type = BaseWeapon.AttackType.HITSCAN
+weapon._ready()
+
+weapon._fire_single(Vector2.RIGHT)
+var offset_after_fire: float = weapon._recoil_offset
+
+# Simulate one process tick (20 ms)
+weapon._process(0.02)
+var offset_after_tick: float = weapon._recoil_offset
+
+assert_true(offset_after_tick < offset_after_fire, "Recoil offset should decrease after a process tick")
+
+
+## Test that recoil is zero with recoil_amount == 0
+func test_no_recoil_when_amount_is_zero() -> void:
+weapon.recoil_amount = 0.0
+weapon.infinite_ammo = true
+weapon.attack_type = BaseWeapon.AttackType.HITSCAN
+weapon._ready()
+
+weapon._fire_single(Vector2.RIGHT)
+
+assert_eq(weapon._recoil_offset, 0.0, "Recoil offset must stay zero when recoil_amount is 0")
+assert_eq(weapon.rotation_degrees, 0.0, "rotation_degrees must stay zero when recoil_amount is 0")
+
+
+## Test that WeaponData applies recoil properties to weapon
+func test_weapon_data_applies_recoil() -> void:
+var weapon_data := WeaponData.new()
+weapon_data.recoil_amount = 7.5
+weapon_data.recoil_recovery_speed = 90.0
+
+weapon_data.apply_to_weapon(weapon)
+
+assert_eq(weapon.recoil_amount, 7.5, "recoil_amount should be applied from WeaponData")
+assert_eq(weapon.recoil_recovery_speed, 90.0, "recoil_recovery_speed should be applied from WeaponData")
