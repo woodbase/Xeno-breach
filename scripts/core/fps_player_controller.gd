@@ -19,6 +19,9 @@ signal died
 ## Running speed in m/s, applied while the sprint action is held.
 @export var sprint_speed: float = 9.0
 
+## Deceleration in m/s² applied when no movement input is given.
+@export var deceleration: float = 30.0
+
 ## Initial vertical velocity applied on jump.
 @export var jump_velocity: float = 4.5
 
@@ -97,8 +100,8 @@ func _handle_movement(delta: float) -> void:
 		velocity.x = direction.x * speed
 		velocity.z = direction.z * speed
 	else:
-		velocity.x = move_toward(velocity.x, 0.0, speed * delta)
-		velocity.z = move_toward(velocity.z, 0.0, speed * delta)
+		velocity.x = move_toward(velocity.x, 0.0, deceleration * delta)
+		velocity.z = move_toward(velocity.z, 0.0, deceleration * delta)
 
 
 ## Delegate incoming damage to the HealthComponent.
