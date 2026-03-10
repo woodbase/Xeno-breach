@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3 uid="uid://c7vj8qxpk0ple"]
+
+[ext_resource type="Script" path="res://scripts/data/weapon_data.gd" id="1_assault_rifle"]
+[ext_resource type="PackedScene" uid="uid://d2wrs5vy5cqsm" path="res://scenes/weapons/projectile.tscn" id="2_projectile"]
+
+[resource]
+script = ExtResource("1_assault_rifle")
+weapon_name = "M4 Assault Rifle"
+weapon_description = "Fully automatic rifle with moderate fire rate and damage"
+fire_rate = 0.1
+firing_mode = 0
+burst_count = 3
+burst_delay = 0.1
+damage = 15.0
+attack_type = 0
+projectile_speed = 800.0
+projectile_lifetime = 2.0
+projectile_scene = ExtResource("2_projectile")
+muzzle_offset = Vector2(32, 0)
+hitscan_range = 1000.0
+hitscan_pierce_count = 0
+max_ammo = 30
+infinite_ammo = false
+reload_time = 2.0

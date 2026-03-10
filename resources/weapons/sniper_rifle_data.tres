@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3 uid="uid://c3xvj9qxpk8rnf"]
+
+[ext_resource type="Script" path="res://scripts/data/weapon_data.gd" id="1_sniper"]
+[ext_resource type="PackedScene" uid="uid://d2wrs5vy5cqsm" path="res://scenes/weapons/projectile.tscn" id="2_projectile"]
+
+[resource]
+script = ExtResource("1_sniper")
+weapon_name = "Sniper Rifle"
+weapon_description = "High-damage hitscan weapon with pierce capability"
+fire_rate = 0.8
+firing_mode = 1
+burst_count = 1
+burst_delay = 0.1
+damage = 50.0
+attack_type = 1
+projectile_speed = 1200.0
+projectile_lifetime = 3.0
+projectile_scene = ExtResource("2_projectile")
+muzzle_offset = Vector2(40, 0)
+hitscan_range = 2000.0
+hitscan_pierce_count = 2
+max_ammo = 8
+infinite_ammo = false
+reload_time = 3.0
