@@ -1,7 +1,8 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/levels/test_level.gd" id="1_level"]
 [ext_resource type="Script" path="res://scripts/levels/placeholder_tilemap.gd" id="11_tilemap_script"]
+[ext_resource type="Script" path="res://scripts/levels/exit_trigger.gd" id="12_exit_trigger"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="3_hud"]
 [ext_resource type="Script" path="res://scripts/systems/wave_spawner.gd" id="4_spawner"]
@@ -23,6 +24,9 @@ size = Vector2(160, 40)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_top_cover"]
 size = Vector2(140, 40)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_exit"]
+radius = 72.0
 
 [node name="Level02" type="Node2D"]
 script = ExtResource("1_level")
@@ -95,6 +99,22 @@ position = Vector2(0, 280)
 
 [node name="PlayerStartMarker" type="Marker2D" parent="."]
 position = Vector2(0, 280)
+
+[node name="ExitTrigger" type="Area2D" parent="."]
+visible = false
+position = Vector2(560, 300)
+script = ExtResource("12_exit_trigger")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ExitTrigger"]
+shape = SubResource("CircleShape2D_exit")
+
+[node name="Indicator" type="Label" parent="ExitTrigger"]
+visible = false
+offset_left = -96.0
+offset_top = -18.0
+offset_right = 96.0
+offset_bottom = 18.0
+horizontal_alignment = 1
 
 [node name="SpawnPoints" type="Node2D" parent="."]
 

@@ -6,6 +6,7 @@ const AudioLibrary = preload("res://scripts/systems/audio_library.gd")
 @onready var player: PlayerController = $Player
 @onready var hud: HUD = $HUD
 @onready var wave_spawner: WaveSpawner = $WaveSpawner
+@onready var exit_trigger: ExitTrigger = get_node_or_null("ExitTrigger") as ExitTrigger
 @onready var spawn_points_container: Node2D = $SpawnPoints
 @onready var placed_enemies_container: Node2D = get_node_or_null("PlacedEnemies") as Node2D
 
@@ -38,6 +39,7 @@ var _run_seed: int = 0
 var _current_wave: int = 1
 var _alive_players: int = 1
 var _ambient_player: AudioStreamPlayer = null
+var _awaiting_extraction: bool = false
 
 
 func _ready() -> void:
@@ -77,6 +79,9 @@ func _ready() -> void:
 	wave_spawner.enemy_killed.connect(_on_enemy_killed)
 	wave_spawner.enemy_spawned.connect(_on_enemy_spawned)
 	_bind_placed_enemies()
+	if exit_trigger != null:
+		exit_trigger.player_extracted.connect(_on_player_extracted)
+		exit_trigger.set_active(false)
 
 	# Spawn extra local co-op players (players 2–4 use gamepad slots 0, 1, 2).
 	# Connect audio signals
@@ -158,7 +163,33 @@ func _on_wave_completed(wave_number: int) -> void:
 
 
 func _on_all_waves_completed() -> void:
-	go_to_next_level()
+	if exit_trigger != null:
+		_awaiting_extraction = true
+		exit_trigger.set_active(true)
+		hud.show_extraction_prompt()
+		print("All waves cleared! Reach extraction point.")
+		return
+
+	_complete_level_run()
+
+
+func _on_player_extracted() -> void:
+	if not _awaiting_extraction:
+		return
+	_awaiting_extraction = false
+	if exit_trigger != null:
+		exit_trigger.set_active(false)
+	_complete_level_run()
+
+
+func _complete_level_run() -> void:
+	if not next_level_scene_path.is_empty():
+		var has_next_level := ResourceLoader.exists(next_level_scene_path)
+		if has_next_level:
+			_go_to_next_level()
+			return
+		else:
+			push_warning("Configured next_level_scene_path does not exist: %s" % next_level_scene_path)
 
 
 ## Called by [method LevelBase.go_to_next_level] when no valid next-level path
@@ -168,7 +199,7 @@ func _on_all_waves_completed() -> void:
 func _on_no_next_level() -> void:
 	_run_finished = true
 	GameStateManager.change_state(GameStateManager.State.VICTORY)
-	hud.show_final_results(_score, _current_wave)
+	hud.show_final_results(_score, _current_wave, "Demo Complete")
 	AudioManager.play_music("victory_theme")
 	print("VICTORY — all waves cleared!")
 
