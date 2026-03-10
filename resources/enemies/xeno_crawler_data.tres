@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1_enemy_data"]
+
+[resource]
+script = ExtResource("1_enemy_data")
+enemy_name = "Xeno Crawler"
+max_health = 40.0
+move_speed = 140.0
+detection_range = 180.0
+attack_range = 45.0
+damage = 12.0
+attack_cooldown = 0.8
+patrol_enabled = true
+patrol_radius = 100.0
+projectile_speed = 350.0

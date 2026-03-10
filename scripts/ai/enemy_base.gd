@@ -25,6 +25,9 @@ signal state_changed(new_state: State, old_state: State)
 ## Half-width of the patrol route. The enemy patrols patrol_radius units to
 ## each side of its spawn position along the X-axis.
 @export var patrol_radius: float = 80.0
+## Optional data resource. When assigned, stats are loaded from it on [method _ready],
+## overriding the individual export properties above.
+@export var data: EnemyData
 
 @onready var health_component: HealthComponent = $HealthComponent
 @onready var _body: CanvasItem = $Body
@@ -45,10 +48,35 @@ const _PATROL_SPEED_RATIO: float = 0.5
 
 
 func _ready() -> void:
+	_apply_data()
 	health_component.died.connect(_on_health_died)
 	health_component.damaged.connect(_on_health_damaged)
 	_init_hit_flash()
 	_init_patrol()
+
+
+## Apply [member data] stats to this enemy's exported properties.
+## Called automatically from [method _ready]; safe to call again after hot-swapping [member data].
+func apply_data() -> void:
+	_apply_data()
+
+
+func _apply_data() -> void:
+	if data == null:
+		return
+	move_speed = data.move_speed
+	detection_range = data.detection_range
+	attack_range = data.attack_range
+	damage = data.damage
+	attack_cooldown = data.attack_cooldown
+	patrol_enabled = data.patrol_enabled
+	patrol_radius = data.patrol_radius
+	if data.projectile_scene != null:
+		projectile_scene = data.projectile_scene
+	projectile_speed = data.projectile_speed
+	if health_component != null:
+		health_component.max_health = data.max_health
+		health_component.current_health = data.max_health
 
 
 func _physics_process(delta: float) -> void:
