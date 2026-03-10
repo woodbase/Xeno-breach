@@ -226,3 +226,36 @@ func test_reload_signals_forwarding() -> void:
 	await wait_seconds(0.2)
 
 	assert_signal_emitted(weapon_manager, "reload_completed", "Manager should forward reload_completed")
+
+
+## Test empty_fired signal forwarding from active weapon
+func test_empty_fired_signal_forwarding() -> void:
+	weapon_manager._ready()
+
+	weapon1.infinite_ammo = false
+	weapon1.max_ammo = 0
+	weapon1._ready()
+
+	watch_signals(weapon_manager)
+	weapon1._fire_single(Vector2.RIGHT)
+
+	assert_signal_emitted(weapon_manager, "empty_fired", "Manager should forward empty_fired from active weapon")
+
+
+## Test ammo_changed is not forwarded from inactive weapons
+func test_ammo_changed_not_forwarded_from_inactive_weapon() -> void:
+	weapon_manager._ready()
+
+	weapon1.infinite_ammo = false
+	weapon1.attack_type = BaseWeapon.AttackType.HITSCAN
+	weapon1._ready()
+
+	weapon2.infinite_ammo = false
+	weapon2.attack_type = BaseWeapon.AttackType.HITSCAN
+	weapon2._ready()
+
+	# weapon1 is active; fire weapon2 (inactive) directly
+	watch_signals(weapon_manager)
+	weapon2._fire_single(Vector2.RIGHT)
+
+	assert_signal_not_emitted(weapon_manager, "ammo_changed", "Manager should NOT forward ammo_changed from inactive weapon")

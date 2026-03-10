@@ -18,11 +18,16 @@ signal reload_started
 ## Emitted when a reload completes on the active weapon.
 signal reload_completed
 
+## Emitted when the active weapon is fired with no ammo.
+signal empty_fired
+
 ## The currently active weapon index.
 var active_weapon_index: int = 0
 
 var _weapons: Array[BaseWeapon] = []
 var _active_weapon: BaseWeapon = null
+## Tracks weapons whose signals have already been connected to avoid duplicate connections.
+var _connected_weapons: Array[BaseWeapon] = []
 
 
 func _ready() -> void:
@@ -38,13 +43,13 @@ func _refresh_weapon_list() -> void:
 		if child is BaseWeapon:
 			_weapons.append(child)
 			child.visible = false
-			# Connect weapon signals
-			if not child.ammo_changed.is_connected(_on_weapon_ammo_changed):
-				child.ammo_changed.connect(_on_weapon_ammo_changed)
-			if not child.reload_started.is_connected(_on_weapon_reload_started):
-				child.reload_started.connect(_on_weapon_reload_started)
-			if not child.reload_completed.is_connected(_on_weapon_reload_completed):
-				child.reload_completed.connect(_on_weapon_reload_completed)
+			# Connect weapon signals only if not already connected for this weapon
+			if not _connected_weapons.has(child):
+				_connected_weapons.append(child)
+				child.ammo_changed.connect(_on_weapon_ammo_changed.bind(child))
+				child.reload_started.connect(_on_weapon_reload_started.bind(child))
+				child.reload_completed.connect(_on_weapon_reload_completed.bind(child))
+				child.empty_fired.connect(_on_weapon_empty_fired.bind(child))
 
 
 ## Switch to the weapon at the given index.
@@ -116,6 +121,7 @@ func remove_weapon(index: int) -> void:
 		else:
 			_active_weapon = null
 
+	_connected_weapons.erase(weapon)
 	remove_child(weapon)
 	weapon.queue_free()
 	_refresh_weapon_list()
@@ -126,16 +132,26 @@ func get_weapon_count() -> int:
 	return _weapons.size()
 
 
-func _on_weapon_ammo_changed(current: int, max_ammo: int) -> void:
-	if get_active_weapon() == null:
+func _on_weapon_ammo_changed(current: int, max_ammo: int, weapon: BaseWeapon) -> void:
+	# Only forward signal from the active weapon
+	if weapon != _active_weapon:
 		return
-	# Only emit if it's from the active weapon
 	ammo_changed.emit(current, max_ammo)
 
 
-func _on_weapon_reload_started() -> void:
+func _on_weapon_reload_started(weapon: BaseWeapon) -> void:
+	if weapon != _active_weapon:
+		return
 	reload_started.emit()
 
 
-func _on_weapon_reload_completed() -> void:
+func _on_weapon_reload_completed(weapon: BaseWeapon) -> void:
+	if weapon != _active_weapon:
+		return
 	reload_completed.emit()
+
+
+func _on_weapon_empty_fired(weapon: BaseWeapon) -> void:
+	if weapon != _active_weapon:
+		return
+	empty_fired.emit()

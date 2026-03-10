@@ -23,6 +23,7 @@ extends Resource
 @export var projectile_speed: float = 600.0
 @export var projectile_lifetime: float = 2.0
 @export var projectile_scene: PackedScene
+@export var impact_effect_scene: PackedScene
 @export var muzzle_offset: Vector2 = Vector2(32.0, 0.0)
 
 @export_group("Hitscan Settings")
@@ -47,6 +48,7 @@ func apply_to_weapon(weapon: BaseWeapon) -> void:
 	weapon.damage = damage
 	weapon.attack_type = attack_type
 	weapon.projectile_scene = projectile_scene
+	weapon.impact_effect_scene = impact_effect_scene
 	weapon.muzzle_offset = muzzle_offset
 	weapon.hitscan_range = hitscan_range
 	weapon.hitscan_pierce_count = hitscan_pierce_count
