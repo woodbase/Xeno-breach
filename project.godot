@@ -24,6 +24,7 @@ config/icon="res://logo.png"
 GameStateManager="*res://scripts/systems/game_state_manager.gd"
 CoopManager="*res://scripts/systems/coop_manager.gd"
 AudioManager="*res://scripts/systems/audio_manager.gd"
+MissionManager="*res://scripts/systems/mission_manager.gd"
 
 [display]
 
