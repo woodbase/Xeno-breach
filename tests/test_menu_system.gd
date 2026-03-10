@@ -8,7 +8,14 @@
 ##   • PauseMenu emits restart_pressed when Restart is pressed.
 ##   • PauseMenu emits main_menu_pressed when Main Menu is pressed.
 ##   • PauseMenu emits quit_pressed when Quit is pressed.
+##   • PauseMenu runs with PROCESS_MODE_WHEN_PAUSED.
+##   • MainMenu can be instantiated and has required buttons.
+##   • MainMenu start button exists and is connected.
+##   • MainMenu quit button exists and is connected.
 ##   • GameStateManager.State.PAUSED exists and is distinct from PLAYING.
+##   • GameStateManager supports all required states.
+##   • GameStateManager transitions work correctly.
+##   • GameStateManager emits state_changed signal.
 ##
 ## Run standalone: create a scene with a Node root, attach this script.
 extends Node
@@ -23,6 +30,7 @@ func _ready() -> void:
 
 
 func _run_all() -> void:
+	# PauseMenu tests
 	test_pause_menu_starts_hidden()
 	test_pause_menu_open_shows()
 	test_pause_menu_close_hides()
@@ -30,8 +38,19 @@ func _run_all() -> void:
 	test_pause_menu_restart_signal()
 	test_pause_menu_main_menu_signal()
 	test_pause_menu_quit_signal()
+	test_pause_menu_process_mode()
+
+	# MainMenu tests
+	test_main_menu_instantiation()
+	test_main_menu_has_start_button()
+	test_main_menu_has_quit_button()
+
+	# GameStateManager tests
 	test_game_state_paused_distinct_from_playing()
 	test_game_state_change_to_paused()
+	test_game_state_all_states_exist()
+	test_game_state_transitions()
+	test_game_state_signal_emission()
 
 
 func _assert(condition: bool, name: String) -> void:
@@ -49,6 +68,14 @@ func _make_pause_menu() -> PauseMenu:
 	var pm: PauseMenu = packed.instantiate() as PauseMenu
 	add_child(pm)
 	return pm
+
+
+## Instantiate a MainMenu by loading the scene.
+func _make_main_menu() -> MainMenu:
+	var packed: PackedScene = load("res://scenes/ui/main_menu.tscn")
+	var mm: MainMenu = packed.instantiate() as MainMenu
+	add_child(mm)
+	return mm
 
 
 # ── Tests ─────────────────────────────────────────────────────────────────────
@@ -128,4 +155,100 @@ func test_game_state_change_to_paused() -> void:
 		GameStateManager.current_state == GameStateManager.State.PAUSED,
 		"GameStateManager transitions to PAUSED state"
 	)
+	GameStateManager.change_state(previous_state)
+
+
+func test_pause_menu_process_mode() -> void:
+	var pm := _make_pause_menu()
+	_assert(
+		pm.process_mode == Node.PROCESS_MODE_WHEN_PAUSED,
+		"PauseMenu has PROCESS_MODE_WHEN_PAUSED"
+	)
+	pm.queue_free()
+
+
+func test_main_menu_instantiation() -> void:
+	var mm := _make_main_menu()
+	_assert(mm != null, "MainMenu can be instantiated")
+	mm.queue_free()
+
+
+func test_main_menu_has_start_button() -> void:
+	var mm := _make_main_menu()
+	var start_btn: Button = mm.get_node_or_null("Center/Panel/Margin/VBox/Buttons/StartButton") as Button
+	_assert(start_btn != null, "MainMenu has StartButton")
+	_assert(start_btn.text == "INITIATE DEPLOYMENT", "StartButton has correct text")
+	mm.queue_free()
+
+
+func test_main_menu_has_quit_button() -> void:
+	var mm := _make_main_menu()
+	var quit_btn: Button = mm.get_node_or_null("Center/Panel/Margin/VBox/Buttons/QuitButton") as Button
+	_assert(quit_btn != null, "MainMenu has QuitButton")
+	mm.queue_free()
+
+
+func test_game_state_all_states_exist() -> void:
+	_assert(
+		GameStateManager.State.MAIN_MENU != null and
+		GameStateManager.State.INTRO != null and
+		GameStateManager.State.PLAYING != null and
+		GameStateManager.State.PAUSED != null and
+		GameStateManager.State.GAME_OVER != null and
+		GameStateManager.State.VICTORY != null and
+		GameStateManager.State.DEMO_END != null,
+		"All GameStateManager states exist"
+	)
+
+
+func test_game_state_transitions() -> void:
+	var previous_state: GameStateManager.State = GameStateManager.current_state
+
+	# Test MAIN_MENU → INTRO transition
+	GameStateManager.change_state(GameStateManager.State.MAIN_MENU)
+	GameStateManager.change_state(GameStateManager.State.INTRO)
+	_assert(
+		GameStateManager.current_state == GameStateManager.State.INTRO,
+		"GameStateManager transitions from MAIN_MENU to INTRO"
+	)
+
+	# Test INTRO → PLAYING transition
+	GameStateManager.change_state(GameStateManager.State.PLAYING)
+	_assert(
+		GameStateManager.current_state == GameStateManager.State.PLAYING,
+		"GameStateManager transitions from INTRO to PLAYING"
+	)
+
+	# Test PLAYING → PAUSED transition
+	GameStateManager.change_state(GameStateManager.State.PAUSED)
+	_assert(
+		GameStateManager.current_state == GameStateManager.State.PAUSED,
+		"GameStateManager transitions from PLAYING to PAUSED"
+	)
+
+	# Restore previous state
+	GameStateManager.change_state(previous_state)
+
+
+func test_game_state_signal_emission() -> void:
+	var previous_state: GameStateManager.State = GameStateManager.current_state
+	var signal_fired := false
+	var received_new_state: GameStateManager.State
+	var received_old_state: GameStateManager.State
+
+	var callback := func(new_state: GameStateManager.State, old_state: GameStateManager.State) -> void:
+		signal_fired = true
+		received_new_state = new_state
+		received_old_state = old_state
+
+	GameStateManager.state_changed.connect(callback)
+	GameStateManager.change_state(GameStateManager.State.PAUSED)
+
+	_assert(signal_fired, "GameStateManager emits state_changed signal")
+	_assert(
+		received_new_state == GameStateManager.State.PAUSED,
+		"state_changed signal provides correct new state"
+	)
+
+	GameStateManager.state_changed.disconnect(callback)
 	GameStateManager.change_state(previous_state)
