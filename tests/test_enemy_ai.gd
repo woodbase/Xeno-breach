@@ -25,6 +25,10 @@ func _run_all() -> void:
 	test_enemy_data_applies_stats()
 	test_enemy_data_applies_health()
 	test_apply_data_public_method()
+	test_range_sq_caches_match_export_defaults()
+	test_apply_data_updates_range_sq_caches()
+	test_ensure_target_rate_limited_after_first_search()
+	test_invalid_target_cleared_on_state_update()
 
 
 func _assert(condition: bool, name: String) -> void:
@@ -236,3 +240,61 @@ func test_apply_data_public_method() -> void:
 	enemy.apply_data()
 	_assert(is_equal_approx(enemy.move_speed, 333.0),
 			"apply_data() public method applies data.move_speed")
+
+
+# ── Performance optimisation tests ───────────────────────────────────────────
+
+func test_range_sq_caches_match_export_defaults() -> void:
+	var enemy := _make_enemy()
+	# Caches must be initialised from the exported defaults even without a data resource.
+	_assert(is_equal_approx(enemy._attack_range_sq, enemy.attack_range * enemy.attack_range),
+			"_attack_range_sq is initialised from the default attack_range export")
+	_assert(is_equal_approx(enemy._detection_range_sq, enemy.detection_range * enemy.detection_range),
+			"_detection_range_sq is initialised from the default detection_range export")
+
+
+func test_apply_data_updates_range_sq_caches() -> void:
+	var enemy := _make_enemy()
+	var d := EnemyData.new()
+	d.attack_range = 100.0
+	d.detection_range = 500.0
+	d.max_health = enemy.health_component.max_health
+	enemy.data = d
+	enemy.apply_data()
+	_assert(is_equal_approx(enemy._attack_range_sq, 100.0 * 100.0),
+			"apply_data updates _attack_range_sq from data.attack_range")
+	_assert(is_equal_approx(enemy._detection_range_sq, 500.0 * 500.0),
+			"apply_data updates _detection_range_sq from data.detection_range")
+
+
+func test_ensure_target_rate_limited_after_first_search() -> void:
+	# After _ensure_target runs one scene-tree search it sets a cooldown.
+	# A second call before the cooldown expires must not overwrite the result
+	# (the cooldown > 0 guard keeps _target as-is).
+	var enemy := _make_enemy()
+	# First call: cooldown is 0, search runs, target stays null (no player node).
+	enemy._update_state()
+	_assert(enemy._target_search_cooldown > 0.0,
+			"_ensure_target sets a positive search cooldown after first lookup")
+	# Manually assign a target and set cooldown still active.
+	var fake_target := _make_target(Vector2(50.0, 0.0))
+	enemy._target = fake_target
+	# Simulate target becoming null while cooldown is still > 0.
+	enemy._target = null
+	var cooldown_before: float = enemy._target_search_cooldown
+	# Call _update_state without ticking physics (cooldown unchanged).
+	enemy._update_state()
+	_assert(is_equal_approx(enemy._target_search_cooldown, cooldown_before),
+			"_ensure_target does not reset cooldown when already active")
+	fake_target.queue_free()
+
+
+func test_invalid_target_cleared_on_state_update() -> void:
+	var enemy := _make_enemy()
+	var target := _make_target(Vector2(50.0, 0.0))
+	enemy.set_target(target)
+	# Force the target to become invalid.
+	target.queue_free()
+	# _update_state must detect the invalid reference and clear _target.
+	enemy._update_state()
+	_assert(enemy._target == null, "stale freed target is cleared during state update")
