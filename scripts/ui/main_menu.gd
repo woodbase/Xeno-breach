@@ -17,6 +17,12 @@ func _ready() -> void:
 	title_label.text = "XENO BREACH // PROTOCOL"
 	subtitle_label.text = "Industrial containment deployment // stay sharp"
 	_setup_coop_selector()
+	# Connect button hover/focus sounds once here to avoid duplicates
+	start_button.mouse_entered.connect(func() -> void: AudioManager.play_ui("button_select"))
+	quit_button.mouse_entered.connect(func() -> void: AudioManager.play_ui("button_select"))
+	start_button.focus_entered.connect(func() -> void: AudioManager.play_ui("button_select"))
+	quit_button.focus_entered.connect(func() -> void: AudioManager.play_ui("button_select"))
+	AudioManager.play_music("menu_theme")
 	start_button.grab_focus()
 
 
@@ -57,15 +63,6 @@ func _on_player_count_selected(count: int) -> void:
 func _update_player_count_buttons() -> void:
 	for i: int in _player_count_buttons.size():
 		_player_count_buttons[i].disabled = (i + 1 == CoopManager.player_count)
-
-	# Play menu music
-	AudioManager.play_music("menu_theme")
-
-	# Connect button hover/focus sounds
-	start_button.mouse_entered.connect(func() -> void: AudioManager.play_ui("button_select"))
-	quit_button.mouse_entered.connect(func() -> void: AudioManager.play_ui("button_select"))
-	start_button.focus_entered.connect(func() -> void: AudioManager.play_ui("button_select"))
-	quit_button.focus_entered.connect(func() -> void: AudioManager.play_ui("button_select"))
 
 
 func _unhandled_input(event: InputEvent) -> void:
