@@ -73,6 +73,10 @@ func _on_health_changed(current: float, maximum: float) -> void:
 	health_bar.max_value = maximum
 	health_bar.value = current
 	health_label.text = "HP  %d / %d" % [int(current), int(maximum)]
+	var low_health := maximum > 0.0 and current / maximum <= 0.3
+	var health_color := Color(1.0, 0.3, 0.3, 1.0) if low_health else Color(1, 1, 1, 1)
+	health_label.modulate = health_color
+	health_bar.modulate = health_color
 
 
 func set_total_waves(total: int) -> void:
@@ -210,7 +214,7 @@ func _set_weapon_labels(name: String, ammo_current: int, ammo_max: int) -> void:
 	if ammo_current <= low_threshold:
 		ammo_label.modulate = Color(1.0, 0.3, 0.3, 1.0)
 	else:
-		ammo_label.modulate = Color(1, 1, 1, 1)
+		ammo_label.modulate = Color(0.0, 0.88, 0.78, 1.0)
 
 
 func _on_ammo_changed(current: int, max_ammo: int) -> void:
