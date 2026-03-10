@@ -293,10 +293,10 @@ Story Points: 5
 
 Tasks:
 
-- [ ] Intro text or screen
-- [ ] Short story introduction
-- [ ] Demo end screen
-- [ ] "Wishlist / Follow development" message
+- [x] Intro text or screen
+- [x] Short story introduction
+- [x] Demo end screen
+- [x] "Wishlist / Follow development" message
 
 ---
 

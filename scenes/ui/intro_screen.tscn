@@ -1,0 +1,246 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/intro_screen.gd" id="1_intro"]
+
+[sub_resource type="Gradient" id="1"]
+offsets = PackedFloat32Array(0, 0.74, 1)
+colors = PackedColorArray(0.0196078, 0.0313726, 0.0509804, 1, 0.054902, 0.0901961, 0.12549, 1, 0.952941, 0.423529, 0.113725, 0.28)
+
+[sub_resource type="GradientTexture2D" id="2"]
+gradient = SubResource("1")
+width = 1920
+height = 1080
+fill_to = Vector2(1, 1)
+
+[sub_resource type="StyleBoxFlat" id="3"]
+bg_color = Color(0.027451, 0.0509804, 0.0784314, 0.92)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.219608, 0.54902, 0.686275, 0.72)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.7)
+shadow_size = 24
+
+[sub_resource type="StyleBoxFlat" id="4"]
+bg_color = Color(0.054902, 0.0862745, 0.121569, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.278431, 0.768627, 0.878431, 0.58)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="5"]
+bg_color = Color(0.0823529, 0.141176, 0.2, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.509804, 0.854902, 0.952941, 0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="6"]
+bg_color = Color(0.215686, 0.101961, 0.0784314, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.552941, 0.188235, 0.95)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="FastNoiseLite" id="7"]
+noise_type = 2
+frequency = 0.85
+fractal_octaves = 2
+fractal_gain = 0.55
+
+[sub_resource type="NoiseTexture2D" id="8"]
+width = 1024
+height = 1024
+seamless = true
+noise = SubResource("7")
+
+[node name="IntroScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_intro")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0156863, 0.027451, 0.0431373, 1)
+
+[node name="BackgroundImageTint" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0117647, 0.0196078, 0.0313726, 0.76)
+
+[node name="Gradient" type="TextureRect" parent="."]
+modulate = Color(1, 1, 1, 0.82)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("2")
+stretch_mode = 6
+
+[node name="Noise" type="TextureRect" parent="."]
+modulate = Color(1, 1, 1, 0.06)
+texture_repeat = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("8")
+stretch_mode = 1
+
+[node name="TopLightBar" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.08
+anchor_top = 0.06
+anchor_right = 0.33
+anchor_bottom = 0.075
+grow_horizontal = 0
+grow_vertical = 0
+color = Color(0.337255, 0.835294, 1, 0.8)
+
+[node name="BottomLightBar" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.67
+anchor_top = 0.91
+anchor_right = 0.92
+anchor_bottom = 0.925
+grow_horizontal = 0
+grow_vertical = 0
+color = Color(1, 0.521569, 0.196078, 0.8)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="Center"]
+custom_minimum_size = Vector2(760, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("3")
+
+[node name="Margin" type="MarginContainer" parent="Center/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 36
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 36
+
+[node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="TitleShadow" type="Label" parent="Center/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.337255, 0.835294, 1, 0.3)
+theme_override_font_sizes/font_size = 13
+text = "// INCOMING TRANSMISSION — MISSION CONTROL //"
+horizontal_alignment = 1
+
+[node name="Title" type="Label" parent="Center/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.337255, 0.835294, 1, 0.95)
+theme_override_font_sizes/font_size = 13
+text = "// INCOMING TRANSMISSION — MISSION CONTROL //"
+horizontal_alignment = 1
+
+[node name="Divider" type="ColorRect" parent="Center/Panel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 2)
+layout_mode = 2
+color = Color(0.278431, 0.768627, 0.878431, 0.5)
+
+[node name="StoryLabel" type="Label" parent="Center/Panel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 260)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.847, 0.894, 0.929, 0.9)
+theme_override_font_sizes/font_size = 17
+text = ""
+autowrap_mode = 3
+
+[node name="Divider2" type="ColorRect" parent="Center/Panel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 2)
+layout_mode = 2
+color = Color(0.278431, 0.768627, 0.878431, 0.3)
+
+[node name="HintLabel" type="Label" parent="Center/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.745098, 0.356863, 0.7)
+theme_override_font_sizes/font_size = 13
+text = "Press Fire / Confirm to advance"
+horizontal_alignment = 1
+
+[node name="Buttons" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="ContinueButton" type="Button" parent="Center/Panel/Margin/VBox/Buttons"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.847, 0.894, 0.929, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.701961, 0.368627, 1)
+theme_override_colors/font_hover_color = Color(0.745098, 0.952941, 1, 1)
+theme_override_colors/font_focus_color = Color(0.745098, 0.952941, 1, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("4")
+theme_override_styles/hover = SubResource("5")
+theme_override_styles/pressed = SubResource("6")
+theme_override_styles/disabled = SubResource("4")
+theme_override_styles/focus = SubResource("5")
+text = "DEPLOY"
+disabled = true
+
+[node name="SkipButton" type="Button" parent="Center/Panel/Margin/VBox/Buttons"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.847, 0.894, 0.929, 0.7)
+theme_override_colors/font_pressed_color = Color(1, 0.701961, 0.368627, 1)
+theme_override_colors/font_hover_color = Color(0.745098, 0.952941, 1, 1)
+theme_override_colors/font_focus_color = Color(0.745098, 0.952941, 1, 1)
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("4")
+theme_override_styles/hover = SubResource("5")
+theme_override_styles/pressed = SubResource("6")
+theme_override_styles/disabled = SubResource("4")
+theme_override_styles/focus = SubResource("5")
+text = "SKIP"
