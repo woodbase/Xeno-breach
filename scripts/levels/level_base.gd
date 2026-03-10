@@ -22,6 +22,7 @@ signal level_completed
 signal level_failed
 
 const MAIN_MENU_SCENE_PATH: String = "res://scenes/ui/main_menu.tscn"
+const VICTORY_SCREEN_SCENE_PATH: String = "res://scenes/ui/victory_screen.tscn"
 
 ## Enable verbose balance-tuning output to the Godot output panel.
 @export var debug_telemetry_enabled: bool = false
@@ -111,6 +112,7 @@ func is_position_navigable(world_pos: Vector2) -> bool:
 # ── Level transitions ─────────────────────────────────────────────────────────
 
 ## Transition to the scene at [member next_level_scene_path].
+## Shows the [VictoryScreen] first, then continues to the next level.
 ## Falls back to [method _on_no_next_level] when no path is set or the file
 ## does not exist.
 func go_to_next_level() -> void:
@@ -120,8 +122,9 @@ func go_to_next_level() -> void:
 		if ResourceLoader.exists(next_level_scene_path):
 			_transitioning = true
 			get_tree().paused = false
-			GameStateManager.change_state(GameStateManager.State.PLAYING)
-			get_tree().change_scene_to_file(next_level_scene_path)
+			GameStateManager.next_level_scene_path = next_level_scene_path
+			GameStateManager.change_state(GameStateManager.State.VICTORY)
+			get_tree().change_scene_to_file(VICTORY_SCREEN_SCENE_PATH)
 			return
 		else:
 			push_warning("LevelBase: next_level_scene_path not found: %s" % next_level_scene_path)
