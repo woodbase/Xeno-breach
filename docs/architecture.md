@@ -111,10 +111,22 @@ if hc != null:
 ### Death State
 
 When `HealthComponent.died` fires, `EnemyBase`:
-1. Sets `_is_dying = true` — physics updates halt immediately.
+1. Sets `_is_dying = true` and calls `set_physics_process(false)` — all per-frame work stops immediately.
 2. Disables the collision shape and clears collision layers.
 3. Fades `Body` to transparent over 0.3 s via a `Tween`.
 4. Calls `queue_free()` and emits `EnemyBase.died`.
+
+### Performance Optimisations
+
+| Technique | Where | Detail |
+|---|---|---|
+| Throttled state updates | `EnemyBase._physics_process` | AI state machine runs at most every `_STATE_UPDATE_INTERVAL` (0.1 s) |
+| Staggered initialisation | `EnemyBase._ready` | First state tick is offset by a random fraction of the interval to spread CPU spikes |
+| Off-screen throttle | `EnemyBase` + `VisibleOnScreenNotifier2D` | State interval increases to `_STATE_UPDATE_INTERVAL_OFFSCREEN` (0.25 s) while the enemy is outside the viewport |
+| Squared-distance caching | `EnemyBase._update_state` | `_attack_range_sq` and `_detection_range_sq` cache `range²` to avoid `sqrt` every tick |
+| Rate-limited tree search | `EnemyBase._ensure_target` | Scene-tree player lookup is throttled to once per `_TARGET_SEARCH_INTERVAL` (0.5 s) per enemy |
+| Disable on death | `EnemyBase._on_health_died` | `set_physics_process(false)` called immediately so dead enemies consume no CPU |
+| Hazard idle-pause | `EnvironmentalHazard` | `_physics_process` is disabled while no bodies overlap; re-enabled on `body_entered` |
 
 ### Data-Driven Configuration
 

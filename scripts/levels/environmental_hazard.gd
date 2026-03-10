@@ -17,7 +17,9 @@ var _bodies: Dictionary = {}
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
-	set_physics_process(true)
+	# Start idle; physics_process is re-enabled on demand when the first
+	# overlapping body enters, and paused again when the last one leaves.
+	set_physics_process(false)
 
 
 func _physics_process(delta: float) -> void:
@@ -33,16 +35,21 @@ func _physics_process(delta: float) -> void:
 		_bodies[body] = timer
 	for body in to_remove:
 		_bodies.erase(body)
+	if _bodies.is_empty():
+		set_physics_process(false)
 
 
 func _on_body_entered(body: Node) -> void:
 	if not _can_affect(body):
 		return
 	_bodies[body] = 0.0
+	set_physics_process(true)
 
 
 func _on_body_exited(body: Node) -> void:
 	_bodies.erase(body)
+	if _bodies.is_empty():
+		set_physics_process(false)
 
 
 func _can_affect(body: Node) -> bool:

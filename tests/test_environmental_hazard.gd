@@ -13,6 +13,10 @@ func _ready() -> void:
 func _run_all() -> void:
 	test_hazard_ticks_damage_over_time()
 	test_hazard_respects_affects_players_flag()
+	test_hazard_physics_process_starts_disabled()
+	test_hazard_physics_process_enabled_on_body_enter()
+	test_hazard_physics_process_disabled_on_last_body_exit()
+	test_hazard_physics_process_disabled_after_invalid_body_cleanup()
 
 
 func _assert(condition: bool, name: String) -> void:
@@ -68,3 +72,49 @@ func test_hazard_respects_affects_players_flag() -> void:
 		"hazard does not damage players when affects_players is false")
 	hazard.queue_free()
 	player.queue_free()
+
+
+# ── Performance: idle-pause tests ────────────────────────────────────────────
+
+func test_hazard_physics_process_starts_disabled() -> void:
+	var hazard := _make_hazard(10.0, 0.5)
+	_assert(not hazard.is_physics_processing(),
+		"hazard physics_process is disabled at startup when no bodies overlap")
+	hazard.queue_free()
+
+
+func test_hazard_physics_process_enabled_on_body_enter() -> void:
+	var hazard := _make_hazard(10.0, 0.5)
+	var obj := _make_player(50.0)
+	var player := obj["player"] as Node
+	hazard._on_body_entered(player)
+	_assert(hazard.is_physics_processing(),
+		"hazard physics_process is enabled when the first body enters")
+	hazard.queue_free()
+	player.queue_free()
+
+
+func test_hazard_physics_process_disabled_on_last_body_exit() -> void:
+	var hazard := _make_hazard(10.0, 0.5)
+	var obj := _make_player(50.0)
+	var player := obj["player"] as Node
+	hazard._on_body_entered(player)
+	hazard._on_body_exited(player)
+	_assert(not hazard.is_physics_processing(),
+		"hazard physics_process is disabled again when the last body exits")
+	hazard.queue_free()
+	player.queue_free()
+
+
+func test_hazard_physics_process_disabled_after_invalid_body_cleanup() -> void:
+	var hazard := _make_hazard(10.0, 0.5)
+	var obj := _make_player(50.0)
+	var player := obj["player"] as Node
+	hazard._on_body_entered(player)
+	# Immediately free the body so is_instance_valid returns false on the
+	# next _physics_process tick, exercising the stale-body cleanup path.
+	player.free()
+	hazard._physics_process(0.016)
+	_assert(not hazard.is_physics_processing(),
+		"hazard physics_process is disabled after invalid body is cleaned up")
+	hazard.queue_free()

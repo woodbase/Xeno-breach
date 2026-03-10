@@ -29,6 +29,9 @@ func _run_all() -> void:
 	test_apply_data_updates_range_sq_caches()
 	test_ensure_target_rate_limited_after_first_search()
 	test_invalid_target_cleared_on_state_update()
+	test_physics_process_disabled_after_death()
+	test_offscreen_state_timer_uses_longer_interval()
+	test_onscreen_state_timer_uses_normal_interval()
 
 
 func _assert(condition: bool, name: String) -> void:
@@ -298,3 +301,33 @@ func test_invalid_target_cleared_on_state_update() -> void:
 	# _update_state must detect the invalid reference and clear _target.
 	enemy._update_state()
 	_assert(enemy._target == null, "stale freed target is cleared during state update")
+
+
+# ── Performance optimisation tests ───────────────────────────────────────────
+
+func test_physics_process_disabled_after_death() -> void:
+	var enemy := _make_enemy()
+	enemy.health_component.take_damage(enemy.health_component.max_health)
+	_assert(not enemy.is_physics_processing(),
+			"physics_process is disabled immediately when the enemy dies")
+
+
+func test_offscreen_state_timer_uses_longer_interval() -> void:
+	var enemy := _make_enemy()
+	# Simulate the off-screen callback firing.
+	enemy._is_on_screen = false
+	# Drive _state_timer to zero so the next tick refills it using the
+	# off-screen interval.
+	enemy._state_timer = 0.0
+	enemy._physics_process(0.0)
+	_assert(is_equal_approx(enemy._state_timer, EnemyBase._STATE_UPDATE_INTERVAL_OFFSCREEN),
+			"off-screen enemy refills _state_timer with the longer off-screen interval")
+
+
+func test_onscreen_state_timer_uses_normal_interval() -> void:
+	var enemy := _make_enemy()
+	# Default: _is_on_screen is true.
+	enemy._state_timer = 0.0
+	enemy._physics_process(0.0)
+	_assert(is_equal_approx(enemy._state_timer, EnemyBase._STATE_UPDATE_INTERVAL),
+			"on-screen enemy refills _state_timer with the normal interval")
