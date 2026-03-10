@@ -30,3 +30,8 @@ scale = Vector2(1.04, 1.04)
 texture = ExtResource("4_enemy_texture")
 region_enabled = true
 region_rect = Rect2(448, 298, 256, 200)
+
+[node name="GlowAura" type="Polygon2D" parent="."]
+z_index = -1
+polygon = PackedVector2Array(0, -20, 10, -17.3, 17.3, -10, 20, 0, 17.3, 10, 10, 17.3, 0, 20, -10, 17.3, -17.3, 10, -20, 0, -17.3, -10, -10, -17.3)
+color = Color(0.7, 0.2, 0.8, 0.22)

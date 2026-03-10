@@ -1,9 +1,10 @@
-[gd_scene load_steps=6 format=3 uid="uid://bbdehoofnuted"]
+[gd_scene load_steps=7 format=3 uid="uid://bbdehoofnuted"]
 
 [ext_resource type="Script" path="res://scripts/core/player_controller.gd" id="1_player"]
 [ext_resource type="Script" path="res://scripts/core/health_component.gd" id="2_health"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/pulse_carbine.tscn" id="3_weapon"]
 [ext_resource type="Texture2D" uid="uid://bbhnv2lshedip" path="res://assets/player/player.png" id="4_player_texture"]
+[ext_resource type="Script" path="res://scripts/visual/player_light.gd" id="5_player_light"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_1"]
 radius = 14.0
@@ -34,3 +35,6 @@ region_rect = Rect2(576, 447, 225, 141)
 [node name="Camera2D" type="Camera2D" parent="."]
 position_smoothing_enabled = true
 position_smoothing_speed = 6.0
+
+[node name="PlayerLight" type="PointLight2D" parent="."]
+script = ExtResource("5_player_light")

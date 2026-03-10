@@ -16,6 +16,12 @@ lifetime = 2.2
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_1")
 
-[node name="Body" type="Polygon2D" parent="."]
+[node name="Body" type="Node2D" parent="."]
+
+[node name="GlowOuter" type="Polygon2D" parent="Body"]
+polygon = PackedVector2Array(0, -4.5, 3.2, -3.2, 4.5, 0, 3.2, 3.2, 0, 4.5, -3.2, 3.2, -4.5, 0, -3.2, -3.2)
+color = Color(1.0, 0.3, 0.1, 0.35)
+
+[node name="Core" type="Polygon2D" parent="Body"]
 polygon = PackedVector2Array(-6, -2, 6, 0, -6, 2)
-color = Color(1, 0.4, 0.2, 1)
+color = Color(1.0, 0.45, 0.2, 1.0)
