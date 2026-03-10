@@ -174,8 +174,8 @@ Tasks:
 
 - [x] Player start location
 - [x] Enemy encounters
-- [ ] Level progression path
-- [ ] Environmental storytelling
+- [x] Level progression path
+- [x] Environmental storytelling
 
 ---
 
