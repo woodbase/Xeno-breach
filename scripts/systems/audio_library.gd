@@ -27,7 +27,7 @@ static func get_stream(sound_name: String) -> AudioStreamWAV:
 	match sound_name:
 		"weapon_fire":
 			return get_blaster_shot()
-		"station_ambience":
+		"station_ambience", "combat_theme", "menu_theme", "victory_theme":
 			return get_ambient_loop()
 		"impact_body":
 			return get_impact_body()

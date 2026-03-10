@@ -43,6 +43,7 @@ func _ready() -> void:
 	health_component.damaged.connect(func(amount: float) -> void:
 		damaged.emit(amount)
 		play_damage_feedback(amount)
+		AudioManager.play_sfx("player_hurt", global_position)
 	)
 	health_component.died.connect(_on_health_died)
 	health_component.invulnerability_changed.connect(_on_invulnerability_changed)
