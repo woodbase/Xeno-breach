@@ -18,6 +18,7 @@ func _ready() -> void:
 func _run_all() -> void:
 	test_walk_speed_default()
 	test_sprint_speed_greater_than_walk()
+	test_deceleration_default()
 	test_pitch_clamped_to_min()
 	test_pitch_clamped_to_max()
 	test_pitch_within_range_unchanged()
@@ -52,6 +53,8 @@ func _make_player() -> FPSPlayerController:
 	cam.name = "Camera3D"
 
 	var player := FPSPlayerController.new()
+	# Prevent mouse capture during tests so they run cleanly in all environments.
+	player.capture_mouse = false
 	player.add_child(hc)
 	player.add_child(cam)
 	add_child(player)
@@ -73,6 +76,13 @@ func test_sprint_speed_greater_than_walk() -> void:
 	var player := _make_player()
 	_assert(player.sprint_speed > player.walk_speed,
 		"sprint_speed is greater than walk_speed")
+	player.queue_free()
+
+
+func test_deceleration_default() -> void:
+	var player := _make_player()
+	_assert(player.deceleration > 0.0,
+		"deceleration defaults to a positive value")
 	player.queue_free()
 
 
