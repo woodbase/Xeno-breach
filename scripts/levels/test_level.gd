@@ -192,16 +192,16 @@ func _complete_level_run() -> void:
 			push_warning("Configured next_level_scene_path does not exist: %s" % next_level_scene_path)
 
 
-## Called by [method LevelBase.go_to_next_level] when no valid next-level path
-## is configured.  This override updates the HUD with final results, triggers
-## the victory music, and prints a run summary in addition to the base state
-## change — behaviours specific to the scored wave-runner format.
 func _on_no_next_level() -> void:
 	_run_finished = true
+	_transitioning = true
+	GameStateManager.final_score = _score
+	GameStateManager.final_waves_survived = _current_wave
 	GameStateManager.change_state(GameStateManager.State.VICTORY)
 	hud.show_final_results(_score, _current_wave, "Demo Complete")
 	AudioManager.play_music("victory_theme")
-	print("VICTORY — all waves cleared!")
+	print("VICTORY — all waves cleared! Score=%d" % _score)
+	get_tree().change_scene_to_file("res://scenes/ui/demo_end_screen.tscn")
 
 
 func _unhandled_input(event: InputEvent) -> void:

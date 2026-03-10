@@ -7,16 +7,22 @@ extends Node
 
 enum State {
 	MAIN_MENU,
+	INTRO,
 	PLAYING,
 	PAUSED,
 	GAME_OVER,
 	VICTORY,
+	DEMO_END,
 }
 
 ## Emitted whenever the game state transitions.
 signal state_changed(new_state: State, old_state: State)
 
 var current_state: State = State.MAIN_MENU
+
+## Score and wave data carried from gameplay to the demo end screen.
+var final_score: int = 0
+var final_waves_survived: int = 0
 
 
 ## Transition to [param new_state]. No-ops if already in that state.

@@ -76,8 +76,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _on_start_pressed() -> void:
 	AudioManager.play_ui("button_confirm")
-	GameStateManager.change_state(GameStateManager.State.PLAYING)
-	get_tree().change_scene_to_file("res://scenes/levels/test_level.tscn")
+	GameStateManager.change_state(GameStateManager.State.INTRO)
+	get_tree().change_scene_to_file("res://scenes/ui/intro_screen.tscn")
 
 
 func _on_quit_pressed() -> void:
