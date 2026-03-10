@@ -179,7 +179,7 @@ func play_damage_feedback(amount: float = 10.0) -> void:
 	if _damage_overlay == null:
 		return
 	var max_health := maxf(1.0, health_component.max_health)
-	var alpha := clampf(amount / max_health * 1.5, 0.25, 0.8)
+	var alpha := clampf(amount / max_health * 1.5, 0.5, 0.8)
 	_damage_overlay.color = Color(1.0, 0.0, 0.0, alpha)
 	var timer := get_tree().create_timer(_damage_feedback_duration)
 	_damage_feedback_timer = timer
