@@ -48,6 +48,7 @@ func _ready() -> void:
 	GameStateManager.change_state(GameStateManager.State.PLAYING)
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_start_ambient_bed()
+	AudioManager.play_music("combat_theme")
 
 	# Collect spawn points from direct scene hierarchy and any RoomTemplate children.
 	var points: Array[Node2D] = []
