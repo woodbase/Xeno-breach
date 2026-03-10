@@ -14,6 +14,7 @@ signal menu_pressed
 @onready var wave_banner: Label = $WaveBanner
 @onready var wave_summary_banner: Label = $WaveSummaryBanner
 @onready var game_over_panel: PanelContainer = $GameOverPanel
+@onready var game_over_title: Label = $GameOverPanel/Margin/VBox/GameOverTitle
 @onready var final_wave_label: Label = $GameOverPanel/Margin/VBox/FinalWaveLabel
 @onready var final_score_label: Label = $GameOverPanel/Margin/VBox/FinalScoreLabel
 @onready var retry_button: Button = $GameOverPanel/Margin/VBox/Buttons/RetryButton
@@ -77,7 +78,11 @@ func show_wave_summary(wave_number: int, score: int) -> void:
 	_play_banner(wave_summary_banner, text, false)
 
 
-func show_final_results(score: int, waves_survived: int) -> void:
+func show_extraction_prompt() -> void:
+	_play_banner(wave_summary_banner, "Extraction point is open!", false)
+
+
+func show_final_results(score: int, waves_survived: int, title: String = "Run Complete") -> void:
 	if _banner_tween != null:
 		_banner_tween.kill()
 	if _summary_tween != null:
@@ -85,6 +90,7 @@ func show_final_results(score: int, waves_survived: int) -> void:
 	wave_banner.visible = false
 	wave_summary_banner.visible = false
 
+	game_over_title.text = title
 	var wave_text := "Final Wave: %d" % waves_survived
 	if _total_waves > 0:
 		wave_text = "Final Wave: %d / %d" % [waves_survived, _total_waves]
