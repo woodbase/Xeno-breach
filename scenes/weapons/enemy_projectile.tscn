@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/combat/enemy_projectile.gd" id="1_enemy_proj"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/impact_effect.tscn" id="2_impact"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1"]
 size = Vector2(12, 4)
@@ -12,6 +13,7 @@ script = ExtResource("1_enemy_proj")
 speed = 350.0
 damage = 8.0
 lifetime = 2.2
+impact_effect_scene = ExtResource("2_impact")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_1")
