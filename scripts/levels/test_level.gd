@@ -88,9 +88,6 @@ func _ready() -> void:
 		exit_trigger.set_active(false)
 
 	# Spawn extra local co-op players (players 2–4 use gamepad slots 0, 1, 2).
-	# Connect audio signals
-	player.damaged.connect(_on_player_damaged_audio)
-
 	hud.set_score(_score)
 
 	# Begin
@@ -231,9 +228,6 @@ func _on_enemy_spawned(enemy: EnemyBase) -> void:
 	var health: HealthComponent = enemy.get_node_or_null("HealthComponent") as HealthComponent
 	if health != null:
 		health.damaged.connect(func(amount: float) -> void: _wave_damage_dealt += amount)
-		health.died.connect(func() -> void:
-			AudioManager.play_sfx("enemy_death", enemy.global_position)
-		)
 
 
 func _on_player_damaged(amount: float) -> void:
@@ -284,10 +278,6 @@ func _start_ambient_bed() -> void:
 	if _ambient_player.stream == null:
 		_ambient_player.stream = AudioLibrary.get_ambient_loop()
 	_ambient_player.play()
-
-
-func _on_player_damaged_audio(amount: float) -> void:
-	AudioManager.play_sfx("player_hurt", player.global_position)
 
 
 func _init_run_identity() -> void:

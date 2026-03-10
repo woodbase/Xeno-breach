@@ -219,6 +219,7 @@ func _on_health_died() -> void:
 	if _is_dying:
 		return
 	_is_dying = true
+	AudioManager.play_sfx("enemy_death", global_position)
 	died.emit()
 	velocity = Vector2.ZERO
 	if _collision_shape != null:

@@ -159,11 +159,7 @@ func play_music(music_name: String, fade_duration: float = 1.0) -> void:
 		push_warning("AudioManager: Music '%s' not found in SOUNDS dictionary" % music_name)
 		return
 
-	var music_path: String = SOUNDS[music_name]
-	if not ResourceLoader.exists(music_path):
-		return
-
-	var stream := load(music_path) as AudioStream
+	var stream: AudioStream = _load_stream(music_name)
 	if stream == null:
 		return
 
@@ -197,11 +193,7 @@ func play_ambience(ambience_name: String) -> void:
 		push_warning("AudioManager: Ambience '%s' not found in SOUNDS dictionary" % ambience_name)
 		return
 
-	var ambience_path: String = SOUNDS[ambience_name]
-	if not ResourceLoader.exists(ambience_path):
-		return
-
-	var stream := load(ambience_path) as AudioStream
+	var stream: AudioStream = _load_stream(ambience_name)
 	if stream == null:
 		return
 

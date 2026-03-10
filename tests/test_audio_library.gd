@@ -141,6 +141,7 @@ func test_get_stream_known_keys() -> void:
 		"weapon_fire", "station_ambience", "impact_body", "impact_wall",
 		"enemy_death", "player_hurt", "enemy_alert", "enemy_attack",
 		"button_select", "button_confirm", "wave_start", "game_over",
+		"combat_theme", "menu_theme", "victory_theme",
 	]
 	for key in keys:
 		var stream := AudioLibrary.get_stream(key)
