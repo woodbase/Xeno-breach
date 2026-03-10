@@ -35,6 +35,7 @@ const MASK_ENEMY_PROJECTILE: int = LAYER_PLAYER | LAYER_WORLD
 const SCENE_TEST_LEVEL: String = "res://scenes/levels/test_level.tscn"
 const SCENE_PLAYER: String = "res://scenes/player/player.tscn"
 const SCENE_ENEMY_BASE: String = "res://scenes/enemies/enemy_base.tscn"
+const SCENE_XENO_CRAWLER: String = "res://scenes/enemies/xeno_crawler.tscn"
 const SCENE_PROJECTILE: String = "res://scenes/weapons/projectile.tscn"
 const SCENE_ENEMY_PROJECTILE: String = "res://scenes/weapons/enemy_projectile.tscn"
 const SCENE_HUD: String = "res://scenes/ui/hud.tscn"

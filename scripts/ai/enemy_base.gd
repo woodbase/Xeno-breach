@@ -6,7 +6,7 @@
 class_name EnemyBase
 extends CharacterBody2D
 
-enum State { IDLE, CHASE, ATTACK }
+enum State { IDLE, CHASE, ATTACK, PATROL }
 
 ## Emitted when the enemy's health reaches zero, just before [method queue_free].
 signal died
@@ -19,6 +19,12 @@ signal state_changed(new_state: State, old_state: State)
 @export var attack_cooldown: float = 1.0
 @export var projectile_scene: PackedScene
 @export var projectile_speed: float = 350.0
+## Enable patrol behaviour. The enemy will move back and forth between two
+## automatically-generated waypoints centered on its spawn position.
+@export var patrol_enabled: bool = false
+## Half-width of the patrol route. The enemy patrols patrol_radius units to
+## each side of its spawn position along the X-axis.
+@export var patrol_radius: float = 80.0
 
 @onready var health_component: HealthComponent = $HealthComponent
 @onready var _body: CanvasItem = $Body
@@ -31,12 +37,18 @@ var _hit_flash_timer: Timer
 var _base_modulate: Color = Color.WHITE
 var _flash_color: Color = Color(1.8, 1.8, 1.8, 1.0)
 var _is_dying: bool = false
+var _patrol_points: Array[Vector2] = []
+var _patrol_index: int = 0
+var _spawn_position: Vector2
+const _PATROL_THRESHOLD: float = 10.0
+const _PATROL_SPEED_RATIO: float = 0.5
 
 
 func _ready() -> void:
 	health_component.died.connect(_on_health_died)
 	health_component.damaged.connect(_on_health_damaged)
 	_init_hit_flash()
+	_init_patrol()
 
 
 func _physics_process(delta: float) -> void:
@@ -53,7 +65,7 @@ func _update_state() -> void:
 	var old_state: State = _current_state
 	if _target == null or not is_instance_valid(_target):
 		_target = null
-		_current_state = State.IDLE
+		_current_state = State.PATROL if patrol_enabled else State.IDLE
 	else:
 		var dist: float = global_position.distance_to(_target.global_position)
 		if dist <= attack_range:
@@ -61,11 +73,11 @@ func _update_state() -> void:
 		elif dist <= detection_range:
 			_current_state = State.CHASE
 		else:
-			_current_state = State.IDLE
+			_current_state = State.PATROL if patrol_enabled else State.IDLE
 	if old_state != _current_state:
 		state_changed.emit(_current_state, old_state)
-		# Play alert sound when entering chase state
-		if old_state == State.IDLE and _current_state == State.CHASE:
+		# Play alert sound when the enemy first spots the player
+		if _current_state == State.CHASE and old_state in [State.IDLE, State.PATROL]:
 			AudioManager.play_sfx("enemy_alert", global_position)
 
 
@@ -73,6 +85,8 @@ func _process_state(delta: float) -> void:
 	match _current_state:
 		State.IDLE:
 			velocity = velocity.move_toward(Vector2.ZERO, move_speed * delta * 10.0)
+		State.PATROL:
+			_process_patrol(delta)
 		State.CHASE:
 			var dir: Vector2 = (_target.global_position - global_position).normalized()
 			velocity = dir * move_speed
@@ -171,3 +185,32 @@ func _on_health_damaged(_amount: float) -> void:
 	if _is_dying:
 		return
 	play_hit_flash()
+
+
+## Initialize patrol waypoints centered on the spawn position.
+## Called automatically from [method _ready]; early-returns when patrol is disabled or [member patrol_radius] <= 0.0.
+func _init_patrol() -> void:
+	_spawn_position = global_position
+	if not patrol_enabled or patrol_radius <= 0.0:
+		_patrol_points.clear()
+		_patrol_index = 0
+		return
+	_patrol_points = [
+		_spawn_position + Vector2(patrol_radius, 0.0),
+		_spawn_position - Vector2(patrol_radius, 0.0),
+	]
+	_patrol_index = 0
+
+
+func _process_patrol(delta: float) -> void:
+	if _patrol_points.is_empty():
+		velocity = velocity.move_toward(Vector2.ZERO, move_speed * delta * 10.0)
+		return
+	var waypoint: Vector2 = _patrol_points[_patrol_index]
+	if global_position.distance_to(waypoint) <= _PATROL_THRESHOLD:
+		_patrol_index = (_patrol_index + 1) % _patrol_points.size()
+		waypoint = _patrol_points[_patrol_index]
+	var dir: Vector2 = (waypoint - global_position).normalized()
+	velocity = dir * move_speed * _PATROL_SPEED_RATIO
+	if dir != Vector2.ZERO:
+		look_at(waypoint)
