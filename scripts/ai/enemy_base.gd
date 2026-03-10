@@ -28,6 +28,9 @@ signal state_changed(new_state: State, old_state: State)
 ## Optional data resource. When assigned, stats are loaded from it on [method _ready],
 ## overriding the individual export properties above.
 @export var data: EnemyData
+@export_group("Feedback")
+@export var hit_stun_duration: float = 0.12
+@export var hit_effect_scene: PackedScene = preload("res://scenes/weapons/impact_effect.tscn")
 
 @onready var health_component: HealthComponent = $HealthComponent
 @onready var _body: CanvasItem = $Body
@@ -60,6 +63,7 @@ const _PATROL_SPEED_RATIO: float = 0.5
 const _STATE_UPDATE_INTERVAL: float = 0.1
 ## Minimum gap (seconds) between scene-tree player searches in [method _ensure_target].
 const _TARGET_SEARCH_INTERVAL: float = 0.5
+var _hit_stun_timer: float = 0.0
 
 
 func _ready() -> void:
@@ -110,6 +114,11 @@ func _cache_range_sq() -> void:
 func _physics_process(delta: float) -> void:
 	if _is_dying:
 		velocity = Vector2.ZERO
+		return
+	if _hit_stun_timer > 0.0:
+		_hit_stun_timer = maxf(0.0, _hit_stun_timer - delta)
+		velocity = velocity.move_toward(Vector2.ZERO, move_speed * 6.0 * delta)
+		move_and_slide()
 		return
 	# Decrement per-enemy cooldowns each physics frame.
 	if _target_search_cooldown > 0.0:
@@ -260,6 +269,8 @@ func _on_hit_flash_timeout() -> void:
 func _on_health_damaged(_amount: float) -> void:
 	if _is_dying:
 		return
+	_hit_stun_timer = hit_stun_duration
+	_spawn_hit_effect()
 	play_hit_flash()
 
 
@@ -291,3 +302,16 @@ func _process_patrol(delta: float) -> void:
 	velocity = dir * move_speed * _PATROL_SPEED_RATIO
 	if dir != Vector2.ZERO:
 		look_at(waypoint)
+
+
+func _spawn_hit_effect() -> void:
+	if hit_effect_scene == null:
+		return
+	var level: Node = get_tree().current_scene
+	if level == null:
+		return
+	var effect: Node2D = hit_effect_scene.instantiate() as Node2D
+	if effect == null:
+		return
+	effect.global_position = global_position
+	level.add_child(effect)
