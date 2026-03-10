@@ -1,0 +1,32 @@
+[gd_scene load_steps=2 format=3 uid="uid://room_template_default"]
+
+[ext_resource type="Script" path="res://scripts/levels/room_template.gd" id="1_room_template"]
+
+[node name="RoomTemplate" type="Node2D"]
+script = ExtResource("1_room_template")
+room_id = "room_01"
+floor_half_extents = Vector2(320, 180)
+floor_color = Color(0.15, 0.15, 0.22, 1)
+wall_thickness = 16.0
+
+[node name="Floor" type="Polygon2D" parent="."]
+color = Color(0.15, 0.15, 0.22, 1)
+z_index = -5
+
+[node name="Walls" type="Node2D" parent="."]
+
+[node name="SpawnPoints" type="Node2D" parent="."]
+
+[node name="SpawnPoint1" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(-240, -120)
+
+[node name="SpawnPoint2" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(240, -120)
+
+[node name="SpawnPoint3" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(-240, 120)
+
+[node name="SpawnPoint4" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(240, 120)
+
+[node name="NavigationRegion2D" type="NavigationRegion2D" parent="."]
