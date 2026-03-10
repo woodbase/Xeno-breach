@@ -2,8 +2,12 @@
 ##
 ## Access via the global [code]AudioManager[/code] singleton.
 ## Handles sound effect playback, background music, and audio bus management.
+## When an OGG audio file is absent, the manager falls back to a synthesized stream
+## from [AudioLibrary] so that all sound cues work out-of-the-box.
 
 extends Node
+
+const AudioLibrary = preload("res://scripts/systems/audio_library.gd")
 
 
 ## Audio bus names
@@ -106,18 +110,26 @@ func _get_available_sfx_player() -> AudioStreamPlayer2D:
 	return sfx_players[0]
 
 
+## Return an AudioStream for [param sound_name].
+## Tries to load the OGG file defined in SOUNDS first.
+## Falls back to a procedural stream from AudioLibrary when the file is absent.
+func _load_stream(sound_name: String) -> AudioStream:
+	var sound_path: String = SOUNDS[sound_name]
+	if ResourceLoader.exists(sound_path):
+		var file_stream := load(sound_path) as AudioStream
+		if file_stream != null:
+			return file_stream
+	# No asset file — use procedural fallback if available
+	return AudioLibrary.get_stream(sound_name)
+
+
 ## Play a sound effect at a specific position in the world
 func play_sfx(sound_name: String, position: Vector2 = Vector2.ZERO) -> void:
 	if not SOUNDS.has(sound_name):
 		push_warning("AudioManager: Sound '%s' not found in SOUNDS dictionary" % sound_name)
 		return
 
-	var sound_path: String = SOUNDS[sound_name]
-	if not ResourceLoader.exists(sound_path):
-		# Silently skip missing audio files (allows development without all assets)
-		return
-
-	var stream := load(sound_path) as AudioStream
+	var stream: AudioStream = _load_stream(sound_name)
 	if stream == null:
 		return
 
@@ -133,11 +145,7 @@ func play_ui(sound_name: String) -> void:
 		push_warning("AudioManager: Sound '%s' not found in SOUNDS dictionary" % sound_name)
 		return
 
-	var sound_path: String = SOUNDS[sound_name]
-	if not ResourceLoader.exists(sound_path):
-		return
-
-	var stream := load(sound_path) as AudioStream
+	var stream: AudioStream = _load_stream(sound_name)
 	if stream == null:
 		return
 
