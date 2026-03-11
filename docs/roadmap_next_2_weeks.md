@@ -3,6 +3,19 @@
 Detta dokument bryter ner nästa steg efter nuvarande spelbara prototyp (v0.1.0)
 för att snabbt höja spelkänsla, balans och leveransbarhet.
 
+## Framsteg — snabbstatus
+
+| # | Uppgift | Status |
+|---|---------|--------|
+| 1 | Combat-feel och readability | ✅ Klar |
+| 2 | HUD + run-resultat | ✅ Klar |
+| 3 | Balanspass med telemetry | 🔲 Återstår |
+| 4 | Våginnehåll och variantmix | 🔲 Återstår |
+| 5 | Meny/pause/game state polish | 🔲 Återstår |
+| 6 | Test- och leveranshygien | 🔲 Återstår |
+
+---
+
 ## Målbild för perioden
 
 - M1: Stabil och läsbar core-loop (start → 5 vågor → resultat → retry/menu)
@@ -21,15 +34,15 @@ för att snabbt höja spelkänsla, balans och leveransbarhet.
 
 ---
 
-## Vecka 1 — “Core feel + clarity”
+## Vecka 1 — "Core feel + clarity"
 
-### 1) Combat-feel och readability (Högst prioritet)
+### 1) Combat-feel och readability ✅ Klar
 
 **Leverabler**
-- Hit flash på fiender när de tar skada
-- Kort skärmeffekt/indikator vid spelarskada
-- Enkel muzzle/tracer-effekt på projektiler
-- Tydligare death feedback (sprite blink/fade)
+- [x] Hit flash på fiender när de tar skada (#19)
+- [x] Kort skärmeffekt/indikator vid spelarskada (#24)
+- [x] Enkel muzzle/tracer-effekt på projektiler (#27)
+- [x] Tydligare death feedback (sprite blink/fade) (#28)
 
 **Varför**
 - Nuvarande loop fungerar, men feedback-lagret avgör om combat känns "rätt".
@@ -39,12 +52,12 @@ för att snabbt höja spelkänsla, balans och leveransbarhet.
 
 ---
 
-### 2) HUD + run-resultat (Hög prioritet)
+### 2) HUD + run-resultat ✅ Klar
 
 **Leverabler**
-- Förtydliga HUD-texter (wave progress, score feedback)
-- Visa mellanresultat efter varje våg (kort banner)
-- Förbättra slutskärm med tydlig CTA (Retry/Menu)
+- [x] Förtydliga HUD-texter (wave progress, score feedback) (#29)
+- [x] Visa mellanresultat efter varje våg (kort banner) (#29)
+- [x] Förbättra slutskärm med tydlig CTA (Retry/Menu) (#29)
 
 **Varför**
 - HUD finns redan men kan bära progression bättre och minska kognitiv friktion.
@@ -54,12 +67,12 @@ för att snabbt höja spelkänsla, balans och leveransbarhet.
 
 ---
 
-### 3) Balanspass med telemetry (Hög prioritet)
+### 3) Balanspass med telemetry 🔲 Återstår (Hög prioritet)
 
 **Leverabler**
-- Behåll och använd telemetry-fälten aktivt per våg
-- Kör 10–15 interna runs och logga: clear-time, damage taken, kills/min
-- Justera wave_data i små steg (enemy_count, spawn_delay, enemy mix)
+- [ ] Behåll och använd telemetry-fälten aktivt per våg
+- [ ] Kör 10–15 interna runs och logga: clear-time, damage taken, kills/min
+- [ ] Justera wave_data i små steg (enemy_count, spawn_delay, enemy mix)
 
 **Varför**
 - Data finns redan; snabbaste vägen till bättre pacing är systematisk tuning.
@@ -69,14 +82,14 @@ för att snabbt höja spelkänsla, balans och leveransbarhet.
 
 ---
 
-## Vecka 2 — “Content pass + robustness”
+## Vecka 2 — "Content pass + robustness"
 
-### 4) Våginnehåll och variantmix (Medium-Hög prioritet)
+### 4) Våginnehåll och variantmix 🔲 Återstår (Medium-Hög prioritet)
 
 **Leverabler**
-- Introducera `enemy_scene_pool` på fler vågor för mixade spawns
-- Definiera 2–3 tydliga våg-identiteter (rush, attrition, burst)
-- Finjustera spawn safety-radie mot spelarpuls
+- [ ] Introducera `enemy_scene_pool` på fler vågor för mixade spawns
+- [ ] Definiera 2–3 tydliga våg-identiteter (rush, attrition, burst)
+- [ ] Finjustera spawn safety-radie mot spelarpuls
 
 **Varför**
 - Variationen finns på plats i systemet; nu behövs mer kuraterade encounter-profiler.
@@ -86,12 +99,12 @@ för att snabbt höja spelkänsla, balans och leveransbarhet.
 
 ---
 
-### 5) Meny/pause/game state polish (Medium prioritet)
+### 5) Meny/pause/game state polish 🔲 Återstår (Medium prioritet)
 
 **Leverabler**
-- Konsistent state-övergång för pause/retry/menu
-- Säkerställ att input inte dubbeltriggar vid scenbyte
-- Lägg till enkel run-seed/run-id i logg för reproducerbarhet
+- [ ] Konsistent state-övergång för pause/retry/menu
+- [ ] Säkerställ att input inte dubbeltriggar vid scenbyte
+- [ ] Lägg till enkel run-seed/run-id i logg för reproducerbarhet
 
 **Varför**
 - Ökar stabiliteten och förenklar felsökning av edge-cases.
@@ -101,12 +114,12 @@ för att snabbt höja spelkänsla, balans och leveransbarhet.
 
 ---
 
-### 6) Test- och leveranshygien (Medium prioritet)
+### 6) Test- och leveranshygien 🔲 Återstår (Medium prioritet)
 
 **Leverabler**
-- Utöka testfall för wave progression edge-cases
-- Lägg till snabb "pre-merge checklist" i repo
-- Definiera enkel build/rök-test-rutin inför varje merge
+- [ ] Utöka testfall för wave progression edge-cases
+- [ ] Lägg till snabb "pre-merge checklist" i repo
+- [ ] Definiera enkel build/rök-test-rutin inför varje merge
 
 **Varför**
 - Skyddar tempot när fler features adderas.

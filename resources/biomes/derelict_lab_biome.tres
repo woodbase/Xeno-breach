@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BiomeProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/biome_profile.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+biome_id = &"derelict_lab"
+display_name = "Derelict Lab"
+description = "Dark maintenance decks powered by failing aux generators. Emergency strobes fight against cold ambient fill."
+ambient_color = Color(0.25, 0.26, 0.34, 1)
+emergency_light_color = Color(0.95, 0.24, 0.18, 1)
+terminal_light_color = Color(0.16, 0.82, 0.92, 1)
+ambient_fill_color = Color(0.36, 0.38, 0.52, 1)
+signature_hazards = Array[String]([&"coolant_leak", &"sparking_conduit"])

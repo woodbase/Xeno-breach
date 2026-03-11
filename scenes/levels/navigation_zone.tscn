@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://navigation_zone_default"]
+
+[ext_resource type="Script" path="res://scripts/levels/navigation_zone.gd" id="1_nav_zone"]
+
+[node name="NavigationZone" type="Node2D"]
+script = ExtResource("1_nav_zone")
+zone_id = "zone_01"
+zone_half_extents = Vector2(512, 320)
+
+[node name="NavigationRegion2D" type="NavigationRegion2D" parent="."]

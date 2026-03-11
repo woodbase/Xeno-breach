@@ -1,0 +1,46 @@
+[gd_scene load_steps=6 format=3 uid="uid://boss_xenomorph_prime"]
+
+[ext_resource type="Script" path="res://scripts/ai/boss_enemy.gd" id="1_boss_script"]
+[ext_resource type="Script" path="res://scripts/core/health_component.gd" id="2_health"]
+[ext_resource type="Texture2D" uid="uid://6nudjo4jiaqg" path="res://assets/enemies/parasite.png" id="3_enemy_texture"]
+[ext_resource type="Resource" path="res://resources/enemies/boss_data.tres" id="4_data"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_1"]
+radius = 24.0
+height = 48.0
+
+[node name="Boss" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 6
+script = ExtResource("1_boss_script")
+data = ExtResource("4_data")
+visibility_rect = Rect2(-28.0, -28.0, 56.0, 56.0)
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("2_health")
+max_health = 500.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_1")
+
+[node name="Body" type="Sprite2D" parent="."]
+modulate = Color(0.9, 0.15, 0.15, 1)
+scale = Vector2(1.6, 1.6)
+texture = ExtResource("3_enemy_texture")
+region_enabled = true
+region_rect = Rect2(448, 298, 256, 200)
+
+[node name="ArmourSpines" type="Polygon2D" parent="Body"]
+position = Vector2(0, -6)
+polygon = PackedVector2Array(-48, -16, -22, -34, 0, -42, 22, -34, 48, -16, 38, 14, -38, 14)
+color = Color(0.6, 0.05, 0.05, 0.38)
+
+[node name="CoreGlow" type="Polygon2D" parent="Body"]
+position = Vector2(0, 8)
+polygon = PackedVector2Array(0, -16, 16, 0, 0, 16, -16, 0)
+color = Color(1.0, 0.15, 0.15, 0.65)
+
+[node name="GlowAura" type="Polygon2D" parent="."]
+z_index = -1
+polygon = PackedVector2Array(0, -36, 18, -31.2, 31.2, -18, 36, 0, 31.2, 18, 18, 31.2, 0, 36, -18, 31.2, -31.2, 18, -36, 0, -31.2, -18, -18, -31.2)
+color = Color(0.9, 0.12, 0.12, 0.44)

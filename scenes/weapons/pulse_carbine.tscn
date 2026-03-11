@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/combat/base_weapon.gd" id="1_weapon"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/projectile.tscn" id="2_proj"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/impact_effect.tscn" id="3_impact"]
 
 [node name="PulseCarbine" type="Node2D"]
 script = ExtResource("1_weapon")
@@ -9,9 +10,37 @@ fire_rate = 0.1
 damage = 7.0
 muzzle_offset = Vector2(30, 0)
 projectile_scene = ExtResource("2_proj")
+impact_effect_scene = ExtResource("3_impact")
 
-[node name="MuzzleFlash" type="Polygon2D" parent="."]
+[node name="Model" type="Node2D" parent="."]
+z_index = 1
+
+[node name="Frame" type="Polygon2D" parent="Model"]
+polygon = PackedVector2Array(-28, 6, -18, -8, 18, -12, 30, -6, 30, 6, 12, 10, -18, 12)
+color = Color(0.14, 0.16, 0.2, 1)
+
+[node name="Accent" type="Polygon2D" parent="Model"]
+polygon = PackedVector2Array(-20, -4, 8, -8, 18, -6, 20, 0, 18, 6, 8, 8, -12, 6, -20, 2)
+color = Color(0.36, 0.72, 0.9, 0.9)
+
+[node name="HeatSink" type="Polygon2D" parent="Model"]
+position = Vector2(-6, 0)
+polygon = PackedVector2Array(-10, -10, -4, -10, -4, 10, -10, 10)
+color = Color(0.2, 0.24, 0.32, 1)
+
+[node name="BarrelHighlight" type="Polygon2D" parent="Model"]
+position = Vector2(18, 0)
+polygon = PackedVector2Array(0, -5, 12, -5, 12, 5, 0, 5)
+color = Color(0.8, 0.52, 0.2, 0.85)
+
+[node name="MuzzleFlash" type="Node2D" parent="."]
 position = Vector2(30, 0)
-polygon = PackedVector2Array(0, -5, 5, 0, 0, 5, -5, 0)
-color = Color(1.0, 0.9, 0.4, 1.0)
 visible = false
+
+[node name="FlashCore" type="Polygon2D" parent="MuzzleFlash"]
+polygon = PackedVector2Array(0, -3, 14, -5, 10, 0, 14, 5, 0, 3, -4, 0)
+color = Color(1.0, 0.95, 0.6, 1.0)
+
+[node name="FlashGlow" type="Polygon2D" parent="MuzzleFlash"]
+polygon = PackedVector2Array(0, -6, 18, -8, 14, 0, 18, 8, 0, 6, -7, 0)
+color = Color(1.0, 0.7, 0.2, 0.35)

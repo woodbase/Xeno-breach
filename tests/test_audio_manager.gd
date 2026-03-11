@@ -30,6 +30,9 @@ func _run_all() -> void:
 	test_get_bus_volume()
 	test_set_bus_mute()
 	test_is_bus_muted()
+	test_load_stream_fallback_sfx()
+	test_load_stream_fallback_ui()
+	test_load_stream_fallback_music()
 
 
 # ---------------------------------------------------------------------------
@@ -96,15 +99,17 @@ func test_play_ui_with_missing_file_no_error() -> void:
 
 
 func test_play_music_with_missing_file_no_error() -> void:
-	# Should not crash or error when file doesn't exist
+	# Should not crash or error when file doesn't exist — uses AudioLibrary fallback
 	AudioManager.play_music("menu_theme")
-	_assert(true, "play_music handles missing file gracefully")
+	_assert(AudioManager.music_player.playing, "play_music uses procedural fallback when OGG absent")
+	AudioManager.stop_music()
 
 
 func test_play_ambience_with_missing_file_no_error() -> void:
-	# Should not crash or error when file doesn't exist
+	# Should not crash or error when file doesn't exist — uses AudioLibrary fallback
 	AudioManager.play_ambience("station_ambience")
-	_assert(true, "play_ambience handles missing file gracefully")
+	_assert(AudioManager.ambience_player.playing, "play_ambience uses procedural fallback when OGG absent")
+	AudioManager.stop_ambience()
 
 
 func test_set_bus_volume() -> void:
@@ -132,3 +137,32 @@ func test_is_bus_muted() -> void:
 	AudioManager.set_bus_mute("Ambience", true)
 	_assert(AudioManager.is_bus_muted("Ambience"), "is_bus_muted returns true when muted")
 	AudioManager.set_bus_mute("Ambience", false)  # Reset
+
+
+func test_load_stream_fallback_sfx() -> void:
+	# When OGG file is absent, _load_stream should return a procedural AudioLibrary stream
+	var sfx_keys: Array[String] = [
+		"impact_body", "impact_wall", "enemy_death",
+		"player_hurt", "enemy_alert", "enemy_attack",
+	]
+	for key in sfx_keys:
+		var stream := AudioManager._load_stream(key)
+		_assert(stream != null, "_load_stream('%s') returns procedural fallback" % key)
+
+
+func test_load_stream_fallback_ui() -> void:
+	# UI sounds should also return a procedural fallback when OGG files are absent
+	var ui_keys: Array[String] = ["button_select", "button_confirm", "wave_start", "game_over"]
+	for key in ui_keys:
+		var stream := AudioManager._load_stream(key)
+		_assert(stream != null, "_load_stream('%s') returns procedural fallback" % key)
+
+
+func test_load_stream_fallback_music() -> void:
+	# Music and ambience keys should return procedural fallback streams when OGG files are absent
+	var music_keys: Array[String] = [
+		"combat_theme", "menu_theme", "victory_theme", "station_ambience",
+	]
+	for key in music_keys:
+		var stream := AudioManager._load_stream(key)
+		_assert(stream != null, "_load_stream('%s') returns procedural fallback" % key)

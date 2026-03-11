@@ -17,6 +17,12 @@ func _ready() -> void:
 	title_label.text = "XENO BREACH // PROTOCOL"
 	subtitle_label.text = "Industrial containment deployment // stay sharp"
 	_setup_coop_selector()
+	# Connect button hover/focus sounds once here to avoid duplicates
+	start_button.mouse_entered.connect(func() -> void: AudioManager.play_ui("button_select"))
+	quit_button.mouse_entered.connect(func() -> void: AudioManager.play_ui("button_select"))
+	start_button.focus_entered.connect(func() -> void: AudioManager.play_ui("button_select"))
+	quit_button.focus_entered.connect(func() -> void: AudioManager.play_ui("button_select"))
+	AudioManager.play_music("menu_theme")
 	start_button.grab_focus()
 
 
@@ -58,15 +64,6 @@ func _update_player_count_buttons() -> void:
 	for i: int in _player_count_buttons.size():
 		_player_count_buttons[i].disabled = (i + 1 == CoopManager.player_count)
 
-	# Play menu music
-	AudioManager.play_music("menu_theme")
-
-	# Connect button hover/focus sounds
-	start_button.mouse_entered.connect(func() -> void: AudioManager.play_ui("button_select"))
-	quit_button.mouse_entered.connect(func() -> void: AudioManager.play_ui("button_select"))
-	start_button.focus_entered.connect(func() -> void: AudioManager.play_ui("button_select"))
-	quit_button.focus_entered.connect(func() -> void: AudioManager.play_ui("button_select"))
-
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("fire") or event.is_action_pressed("ui_accept"):
@@ -76,8 +73,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _on_start_pressed() -> void:
 	AudioManager.play_ui("button_confirm")
-	GameStateManager.change_state(GameStateManager.State.PLAYING)
-	get_tree().change_scene_to_file("res://scenes/levels/test_level.tscn")
+	GameStateManager.change_state(GameStateManager.State.INTRO)
+	get_tree().change_scene_to_file("res://scenes/ui/intro_screen.tscn")
 
 
 func _on_quit_pressed() -> void:

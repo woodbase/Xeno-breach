@@ -1,0 +1,26 @@
+name: Create Roadmap Issues (Actions-Safe)
+
+# This workflow creates labels, milestones and roadmap issues.
+# It intentionally skips GitHub Projects v2 setup so it works with the
+# default GITHUB_TOKEN in GitHub Actions (no PAT required).
+on:
+  workflow_dispatch:
+
+jobs:
+  create-roadmap:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run roadmap setup script
+        env:
+          # Prefer PAT when configured; otherwise use default Actions token.
+          GH_TOKEN: ${{ secrets.PROJECTS_RW_TOKEN || github.token }}
+        run: |
+          python3 .github/scripts/create_roadmap_issues.py \
+            --repo "${{ github.repository }}" \
+            --skip-project

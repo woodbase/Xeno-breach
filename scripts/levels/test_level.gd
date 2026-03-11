@@ -1,11 +1,12 @@
 ## Test level orchestration — wires up player, HUD, and wave spawner.
-extends Node2D
+extends LevelBase
 
 const AudioLibrary = preload("res://scripts/systems/audio_library.gd")
 
 @onready var player: PlayerController = $Player
 @onready var hud: HUD = $HUD
 @onready var wave_spawner: WaveSpawner = $WaveSpawner
+@onready var exit_trigger: ExitTrigger = get_node_or_null("ExitTrigger") as ExitTrigger
 @onready var spawn_points_container: Node2D = $SpawnPoints
 @onready var placed_enemies_container: Node2D = get_node_or_null("PlacedEnemies") as Node2D
 
@@ -16,7 +17,6 @@ const TELEMETRY_TARGET_CLEAR_TIME_MAX: float = 40.0
 const TELEMETRY_TARGET_KILLS_PER_MIN_MIN: float = 10.0
 const TELEMETRY_TARGET_KILLS_PER_MIN_MAX: float = 35.0
 const TELEMETRY_TARGET_DAMAGE_TAKEN_MAX: float = 30.0
-const MAIN_MENU_SCENE_PATH: String = "res://scenes/ui/main_menu.tscn"
 const PLAYER_SCENE: String = "res://scenes/player/player.tscn"
 
 ## Spawn offsets for co-op players 2–4 relative to player 1.
@@ -25,9 +25,6 @@ const COOP_SPAWN_OFFSETS: PackedVector2Array = [
 	Vector2(-80.0, 0.0),
 	Vector2(0.0, 80.0),
 ]
-
-@export var debug_telemetry_enabled: bool = false
-@export_file("*.tscn") var next_level_scene_path: String = ""
 
 var _score: int = 0
 var _waves_survived: int = 0
@@ -40,23 +37,28 @@ var _restarting: bool = false
 var _run_id: String = ""
 var _run_seed: int = 0
 var _current_wave: int = 1
-var _transitioning: bool = false
 var _alive_players: int = 1
 var _ambient_player: AudioStreamPlayer = null
+var _awaiting_extraction: bool = false
 
 
 func _ready() -> void:
+	super._ready()
 	_init_run_identity()
 	GameStateManager.change_state(GameStateManager.State.PLAYING)
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_start_ambient_bed()
+	AudioManager.play_music("combat_theme")
 
-	# Collect spawn points from scene tree
+	# Collect spawn points from direct scene hierarchy and any RoomTemplate children.
 	var points: Array[Node2D] = []
 	for child: Node in spawn_points_container.get_children():
 		var point := child as Node2D
 		if point != null:
 			points.append(point)
+	for rp: Node2D in get_room_spawn_points():
+		if not points.has(rp):
+			points.append(rp)
 	wave_spawner.spawn_points = points
 
 	# Bind HUD to player 1 health
@@ -64,7 +66,10 @@ func _ready() -> void:
 	hud.set_total_waves(wave_spawner.get_total_waves())
 	hud.set_wave(_current_wave)
 	hud.retry_pressed.connect(_restart_run)
-	hud.menu_pressed.connect(_return_to_main_menu)
+	hud.menu_pressed.connect(go_to_main_menu)
+	hud.resume_pressed.connect(_toggle_pause)
+	hud.restart_pressed.connect(_restart_run)
+	hud.quit_pressed.connect(func() -> void: get_tree().quit())
 
 	# Track alive players (starts at 1 for the scene player)
 	_alive_players = CoopManager.player_count
@@ -78,11 +83,11 @@ func _ready() -> void:
 	wave_spawner.enemy_killed.connect(_on_enemy_killed)
 	wave_spawner.enemy_spawned.connect(_on_enemy_spawned)
 	_bind_placed_enemies()
+	if exit_trigger != null:
+		exit_trigger.player_extracted.connect(_on_player_extracted)
+		exit_trigger.set_active(false)
 
 	# Spawn extra local co-op players (players 2–4 use gamepad slots 0, 1, 2).
-	# Connect audio signals
-	player.damaged.connect(_on_player_damaged_audio)
-
 	hud.set_score(_score)
 
 	# Begin
@@ -122,18 +127,9 @@ func _on_any_player_died() -> void:
 		_run_finished = true
 		GameStateManager.change_state(GameStateManager.State.GAME_OVER)
 		hud.show_final_results(_score, _current_wave)
+		AudioManager.play_ui("game_over")
+		AudioManager.stop_music()
 		print("GAME OVER")
-	# Start combat music and station ambience
-	AudioManager.play_music("combat_theme")
-
-
-func _on_player_died() -> void:
-	_run_finished = true
-	GameStateManager.change_state(GameStateManager.State.GAME_OVER)
-	hud.show_final_results(_score, _current_wave)
-	AudioManager.play_ui("game_over")
-	AudioManager.stop_music()
-	print("GAME OVER")
 
 
 func _on_wave_started(wave_number: int) -> void:
@@ -159,19 +155,38 @@ func _on_wave_completed(wave_number: int) -> void:
 
 
 func _on_all_waves_completed() -> void:
-	if not next_level_scene_path.is_empty():
-		var has_next_level := ResourceLoader.exists(next_level_scene_path)
-		if has_next_level:
-			_go_to_next_level()
-			return
-		else:
-			push_warning("Configured next_level_scene_path does not exist: %s" % next_level_scene_path)
+	if exit_trigger != null:
+		_awaiting_extraction = true
+		exit_trigger.set_active(true)
+		hud.show_extraction_prompt()
+		print("All waves cleared! Reach extraction point.")
+		return
 
+	_complete_level_run()
+
+
+func _on_player_extracted() -> void:
+	if not _awaiting_extraction:
+		return
+	_awaiting_extraction = false
+	if exit_trigger != null:
+		exit_trigger.set_active(false)
+	_complete_level_run()
+
+
+func _complete_level_run() -> void:
+	GameStateManager.final_score = _score
+	GameStateManager.final_waves_survived = _current_wave
+	go_to_next_level()
+
+
+func _on_no_next_level() -> void:
 	_run_finished = true
-	GameStateManager.change_state(GameStateManager.State.VICTORY)
-	hud.show_final_results(_score, _current_wave)
-	AudioManager.play_music("victory_theme")
-	print("VICTORY — all waves cleared!")
+	_transitioning = true
+	GameStateManager.final_score = _score
+	GameStateManager.final_waves_survived = _current_wave
+	print("VICTORY — all waves cleared! Score=%d" % _score)
+	get_tree().change_scene_to_file("res://scenes/ui/demo_end_screen.tscn")
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -183,7 +198,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 		if event.is_action_pressed("pause"):
 			_restarting = true
-			_return_to_main_menu()
+			go_to_main_menu()
 			get_viewport().set_input_as_handled()
 			return
 
@@ -196,9 +211,11 @@ func _toggle_pause() -> void:
 	if get_tree().paused:
 		get_tree().paused = false
 		GameStateManager.change_state(GameStateManager.State.PLAYING)
+		hud.hide_pause_menu()
 	else:
 		get_tree().paused = true
 		GameStateManager.change_state(GameStateManager.State.PAUSED)
+		hud.show_pause_menu()
 
 
 func _on_enemy_killed() -> void:
@@ -207,13 +224,25 @@ func _on_enemy_killed() -> void:
 	hud.set_score(_score)
 
 
+## Interval (seconds) between player-position checks for [ReachAreaObjective] tracking.
+const _POSITION_CHECK_INTERVAL: float = 0.1
+var _position_check_timer: float = 0.0
+
+
+func _process(delta: float) -> void:
+	if _run_finished or get_tree().paused:
+		return
+	_position_check_timer -= delta
+	if _position_check_timer <= 0.0:
+		_position_check_timer = _POSITION_CHECK_INTERVAL
+		if is_instance_valid(player) and not player.is_queued_for_deletion():
+			MissionManager.check_player_position(player.global_position)
+
+
 func _on_enemy_spawned(enemy: EnemyBase) -> void:
 	var health: HealthComponent = enemy.get_node_or_null("HealthComponent") as HealthComponent
 	if health != null:
 		health.damaged.connect(func(amount: float) -> void: _wave_damage_dealt += amount)
-		health.died.connect(func() -> void:
-			AudioManager.play_sfx("enemy_death", enemy.global_position)
-		)
 
 
 func _on_player_damaged(amount: float) -> void:
@@ -252,24 +281,6 @@ func _restart_run() -> void:
 	get_tree().reload_current_scene()
 
 
-func _go_to_next_level() -> void:
-	if _transitioning:
-		return
-	_transitioning = true
-	get_tree().paused = false
-	GameStateManager.change_state(GameStateManager.State.PLAYING)
-	get_tree().change_scene_to_file(next_level_scene_path)
-
-
-func _return_to_main_menu() -> void:
-	if _transitioning:
-		return
-	_transitioning = true
-	get_tree().paused = false
-	GameStateManager.change_state(GameStateManager.State.MAIN_MENU)
-	get_tree().change_scene_to_file(MAIN_MENU_SCENE_PATH)
-
-
 func _start_ambient_bed() -> void:
 	if _ambient_player == null:
 		_ambient_player = AudioStreamPlayer.new()
@@ -282,10 +293,6 @@ func _start_ambient_bed() -> void:
 	if _ambient_player.stream == null:
 		_ambient_player.stream = AudioLibrary.get_ambient_loop()
 	_ambient_player.play()
-
-
-func _on_player_damaged_audio(amount: float) -> void:
-	AudioManager.play_sfx("player_hurt", player.global_position)
 
 
 func _init_run_identity() -> void:
