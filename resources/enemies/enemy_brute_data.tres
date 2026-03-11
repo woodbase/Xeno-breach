@@ -6,6 +6,7 @@
 [resource]
 script = ExtResource("1_enemy_data")
 enemy_name = "Brute"
+enemy_type = "enemy_brute"
 max_health = 80.0
 move_speed = 90.0
 detection_range = 340.0

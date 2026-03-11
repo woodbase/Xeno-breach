@@ -6,6 +6,7 @@
 [resource]
 script = ExtResource("1_enemy_data")
 enemy_name = "Striker"
+enemy_type = "enemy_striker"
 max_health = 35.0
 move_speed = 170.0
 detection_range = 360.0

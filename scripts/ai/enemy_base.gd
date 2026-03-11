@@ -246,6 +246,7 @@ func _on_health_died() -> void:
 	# Stop all per-frame work as soon as the death sequence begins.
 	set_physics_process(false)
 	AudioManager.play_sfx("enemy_death", global_position)
+	MissionManager.report_enemy_killed(data.enemy_type if data != null else "")
 	died.emit()
 	velocity = Vector2.ZERO
 	if _collision_shape != null:

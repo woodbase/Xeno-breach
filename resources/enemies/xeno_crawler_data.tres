@@ -5,6 +5,7 @@
 [resource]
 script = ExtResource("1_enemy_data")
 enemy_name = "Xeno Crawler"
+enemy_type = "xeno_crawler"
 max_health = 40.0
 move_speed = 140.0
 detection_range = 180.0

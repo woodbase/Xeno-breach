@@ -35,6 +35,15 @@ scenes/levels/test_level.tscn
 
 GameStateManager (autoload)
     └── scripts/systems/game_state_manager.gd   ← global state enum + signal
+
+MissionManager (autoload)
+    └── scripts/systems/mission_manager.gd      ← tracks active missions, routes event triggers
+         ├── scripts/systems/mission.gd          ← runtime mission instance (state machine)
+         └── scripts/systems/mission_objective.gd ← base class; concrete types:
+              ├── kill_enemy_objective.gd         ← kill N enemies (optional type filter)
+              ├── reach_area_objective.gd         ← reach world position within radius
+              ├── activate_terminal_objective.gd  ← activate specific terminal
+              └── retrieve_item_objective.gd      ← collect specific item
 ```
 
 ---
