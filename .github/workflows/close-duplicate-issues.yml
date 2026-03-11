@@ -1,0 +1,80 @@
+name: Close Duplicate Issues
+
+# This workflow labels duplicate roadmap issues as "duplicate" and closes them.
+# Run this once manually to clean up extra issue batches created by re-running
+# the create-roadmap-issues workflow.
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/close-duplicate-issues.yml'
+
+jobs:
+  close-duplicates:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+
+    steps:
+      - name: Close duplicate issues
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // Issues that are duplicates of earlier-created issues.
+            // Third batch (created 2026-03-11): #155–#173 — all duplicate the
+            // first batch (#83–#101) and/or second batch (#109–#127).
+            // Second batch still open (created 2026-03-10): #123–#126 — all
+            // duplicate the first batch (#97–#100).
+            const duplicateIssues = [
+              123, 124, 125, 126,
+              155, 156, 157, 158, 159, 160, 161, 162, 163,
+              164, 165, 166, 167, 168, 169, 170, 171, 172, 173,
+            ];
+
+            // Ensure the "duplicate" label exists.
+            try {
+              await github.rest.issues.createLabel({
+                owner,
+                repo,
+                name: 'duplicate',
+                color: 'cfd3d7',
+                description: 'This issue or pull request already exists',
+              });
+              console.log('Created label: duplicate');
+            } catch (err) {
+              if (err.status === 422) {
+                console.log('Label "duplicate" already exists – skipping creation.');
+              } else {
+                throw err;
+              }
+            }
+
+            // Label and close each duplicate issue.
+            for (const issueNumber of duplicateIssues) {
+              try {
+                await github.rest.issues.addLabels({
+                  owner,
+                  repo,
+                  issue_number: issueNumber,
+                  labels: ['duplicate'],
+                });
+
+                await github.rest.issues.update({
+                  owner,
+                  repo,
+                  issue_number: issueNumber,
+                  state: 'closed',
+                  state_reason: 'not_planned',
+                });
+
+                console.log(`Closed duplicate issue #${issueNumber}`);
+              } catch (err) {
+                console.error(`Failed to process issue #${issueNumber}: ${err.message}`);
+              }
+            }
