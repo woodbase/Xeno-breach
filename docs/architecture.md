@@ -145,11 +145,38 @@ Call `apply_data()` to re-apply after a hot-swap.
 
 Pre-authored resources live in `resources/enemies/`:
 
-| File | Enemy |
-|---|---|
-| `xeno_crawler_data.tres` | Xeno Crawler (melee, patrol) |
-| `enemy_brute_data.tres` | Brute (slow, high HP, ranged) |
-| `enemy_striker_data.tres` | Striker (fast, low HP, ranged) |
+| File | Enemy | Role |
+|---|---|---|
+| `xeno_crawler_data.tres` | Xeno Crawler | Melee, patrols |
+| `enemy_brute_data.tres` | Brute | Slow, high HP, ranged |
+| `enemy_striker_data.tres` | Striker | Fast, low HP, ranged |
+| `elite_xeno_crawler_data.tres` | Elite Xeno Crawler | Elite melee with `is_elite = true` |
+| `elite_brute_data.tres` | Elite Brute | Elite ranged brute with `is_elite = true` |
+| `elite_striker_data.tres` | Elite Striker | Elite ranged striker with `is_elite = true` |
+| `boss_data.tres` | Xenomorph Prime | High-HP boss (500 HP) with phase transitions |
+
+#### Elite Enemies
+
+Set `EnemyData.is_elite = true` to mark a variant as elite. `EnemyBase` will
+automatically apply a golden body tint and ensure the hit-flash resets to that
+tint rather than white. Elite resources carry roughly double the HP and damage
+of their base counterparts and award more score via `score_value`.
+
+#### Boss Encounters
+
+Scene: `scenes/enemies/boss.tscn`  
+Script: `scripts/ai/boss_enemy.gd` (`BossEnemy extends EnemyBase`)  
+Data: `resources/enemies/boss_data.tres`
+
+`BossEnemy` adds a two-phase combat system on top of `EnemyBase`:
+
+| Phase | Trigger | Behaviour change |
+|---|---|---|
+| 1 | Default | Standard EnemyBase stats from `boss_data.tres` |
+| 2 | HP < 50 % | `move_speed × phase_2_speed_mult`, `attack_cooldown × phase_2_cooldown_mult`, body tint turns crimson |
+
+Connect to `BossEnemy.phase_changed(new_phase: int)` to drive HUD / audio feedback.  
+`BossEnemy.get_current_phase()` returns the current phase (1 or 2).
 
 ### Demo Enemy — Xeno Crawler
 
@@ -159,6 +186,14 @@ Data: `resources/enemies/xeno_crawler_data.tres`
 The Xeno Crawler is a close-range melee enemy. It patrols its spawn area, detects the
 player within 180 units, chases, and attacks at 45 units with a 0.8 s cooldown.
 It has 40 HP and a green tint to distinguish it visually.
+
+### Ranged Enemies — Brute and Striker
+
+Scene (Brute): `scenes/enemies/enemy_brute.tscn`  
+Scene (Striker): `scenes/enemies/enemy_striker.tscn`
+
+Both enemy types fire `enemy_projectile.tscn` at the player from a distance.
+The Brute is slow and tanky (80 HP); the Striker is fast and fragile (35 HP).
 
 ---
 
@@ -183,6 +218,14 @@ Player projectile `collision_mask = 6` → hits enemies (2) + world (4).
 2. Create a new `EnemyData` resource in `resources/enemies/` and set all stats.
 3. Assign the resource to the `data` export on the scene root — stats are applied on `_ready()`.
 4. Optionally subclass `enemy_base.gd` for unique behaviour (charge attacks, special abilities, etc.).
+5. Set `is_elite = true` on the data resource to have `EnemyBase` automatically apply the golden elite tint.
+
+### New boss encounter
+1. Duplicate `scenes/enemies/boss.tscn`.
+2. Create a new `EnemyData` resource with high `max_health` stats.
+3. Assign the `BossEnemy` script (`scripts/ai/boss_enemy.gd`) to the scene root.
+4. Adjust `phase_2_speed_mult` and `phase_2_cooldown_mult` on the root node for the desired phase-2 difficulty spike.
+5. Connect `phase_changed` in the owning level to trigger HUD and audio feedback.
 
 ### New weapon
 1. Duplicate `scenes/weapons/base_weapon.tscn`.
