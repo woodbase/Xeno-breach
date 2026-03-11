@@ -20,3 +20,8 @@ extends Resource
 @export var patrol_radius: float = 80.0
 @export var projectile_scene: PackedScene
 @export var projectile_speed: float = 350.0
+## Marks this as an elite variant. [EnemyBase] will apply a golden tint
+## and [WaveSpawner] can use this flag for targeted spawning logic.
+@export var is_elite: bool = false
+## Score awarded to the player when this enemy type is killed.
+@export var score_value: int = 10

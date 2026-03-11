@@ -115,6 +115,21 @@ func _apply_data() -> void:
 		health_component.max_health = data.max_health
 		health_component.current_health = data.max_health
 	_cache_range_sq()
+	if data.is_elite:
+		_apply_elite_visual()
+
+
+## Apply a golden tint to indicate elite status.
+## Called automatically by [method _apply_data] when [member EnemyData.is_elite] is true.
+func _apply_elite_visual() -> void:
+	if _body == null:
+		return
+	var elite_tint := Color(1.0, 0.85, 0.2, 1.0)
+	_body.modulate = elite_tint
+	# If _init_hit_flash has already run, keep _base_modulate in sync so that
+	# the flash-reset callback restores the elite tint rather than white.
+	if _hit_flash_timer != null:
+		_base_modulate = elite_tint
 
 
 ## Refresh the cached squared range values from the current [member attack_range]
