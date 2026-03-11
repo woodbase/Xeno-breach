@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - 'copilot/fix-duplicate-issues'
+      - main
     paths:
       - '.github/workflows/close-duplicate-issues.yml'
 
