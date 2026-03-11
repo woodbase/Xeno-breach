@@ -5,6 +5,11 @@ name: Close Duplicate Issues
 # the create-roadmap-issues workflow.
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - 'copilot/fix-duplicate-issues'
+    paths:
+      - '.github/workflows/close-duplicate-issues.yml'
 
 jobs:
   close-duplicates:
