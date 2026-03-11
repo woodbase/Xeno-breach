@@ -95,6 +95,13 @@ func try_fire(direction: Vector2, trigger_held: bool) -> bool:
 	return _active_weapon.try_fire(direction, trigger_held)
 
 
+## Attempt to use the alternate fire of the active weapon.
+func try_alt_fire(direction: Vector2, trigger_held: bool) -> bool:
+	if _active_weapon == null:
+		return false
+	return _active_weapon.try_alt_fire(direction, trigger_held)
+
+
 ## Start reloading the active weapon.
 func reload() -> void:
 	if _active_weapon == null:

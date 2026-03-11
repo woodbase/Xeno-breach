@@ -19,6 +19,12 @@ extends Resource
 @export var damage: float = 10.0
 @export var attack_type: BaseWeapon.AttackType = BaseWeapon.AttackType.PROJECTILE
 
+@export_group("Spread Settings")
+## Number of projectiles or rays fired per shot. Values above 1 create a spread pattern.
+@export var pellet_count: int = 1
+## Total angle in degrees across which multiple pellets are distributed.
+@export var spread_angle: float = 0.0
+
 @export_group("Projectile Settings")
 @export var projectile_speed: float = 600.0
 @export var projectile_lifetime: float = 2.0
@@ -41,6 +47,20 @@ extends Resource
 ## How quickly (degrees per second) the recoil returns to rest.
 @export var recoil_recovery_speed: float = 120.0
 
+@export_group("Alternate Fire")
+## Enable a secondary fire mode for this weapon.
+@export var alt_fire_enabled: bool = false
+## Attack type used when alternate fire is triggered.
+@export var alt_fire_attack_type: BaseWeapon.AttackType = BaseWeapon.AttackType.HITSCAN
+## Damage multiplier applied to base damage for alternate fire.
+@export var alt_fire_damage_multiplier: float = 1.5
+## Number of pellets fired per alternate fire shot.
+@export var alt_fire_pellet_count: int = 1
+## Total spread angle in degrees for alternate fire pellets.
+@export var alt_fire_spread_angle: float = 0.0
+## Hitscan range used for alternate fire.
+@export var alt_fire_hitscan_range: float = 1000.0
+
 
 ## Apply this weapon data to a BaseWeapon instance.
 func apply_to_weapon(weapon: BaseWeapon) -> void:
@@ -53,6 +73,8 @@ func apply_to_weapon(weapon: BaseWeapon) -> void:
 	weapon.burst_delay = burst_delay
 	weapon.damage = damage
 	weapon.attack_type = attack_type
+	weapon.pellet_count = pellet_count
+	weapon.spread_angle = spread_angle
 	weapon.projectile_scene = projectile_scene
 	weapon.impact_effect_scene = impact_effect_scene
 	weapon.muzzle_offset = muzzle_offset
@@ -63,5 +85,11 @@ func apply_to_weapon(weapon: BaseWeapon) -> void:
 	weapon.reload_time = reload_time
 	weapon.recoil_amount = recoil_amount
 	weapon.recoil_recovery_speed = recoil_recovery_speed
+	weapon.alt_fire_enabled = alt_fire_enabled
+	weapon.alt_fire_attack_type = alt_fire_attack_type
+	weapon.alt_fire_damage_multiplier = alt_fire_damage_multiplier
+	weapon.alt_fire_pellet_count = alt_fire_pellet_count
+	weapon.alt_fire_spread_angle = alt_fire_spread_angle
+	weapon.alt_fire_hitscan_range = alt_fire_hitscan_range
 	weapon.current_ammo = max_ammo
 

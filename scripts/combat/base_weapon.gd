@@ -1,7 +1,7 @@
 ## BaseWeapon — modular weapon system supporting projectiles, hitscan, ammo, reload, and firing modes.
 ##
 ## Supports multiple firing modes (auto, semi-auto, burst), ammo management, reload system,
-## and both projectile and hitscan attack types.
+## both projectile and hitscan attack types, multi-pellet spread, and alternate fire.
 ##
 ## A child node named "MuzzleFlash" (any CanvasItem) is shown briefly on each shot
 ## and hidden automatically, providing lightweight muzzle-flash visual feedback.
@@ -43,6 +43,12 @@ enum AttackType {
 @export var damage: float = 10.0
 @export var attack_type: AttackType = AttackType.PROJECTILE
 
+@export_group("Spread Settings")
+## Number of projectiles or rays fired per shot. Values above 1 create a spread pattern.
+@export var pellet_count: int = 1
+## Total angle in degrees across which multiple pellets are distributed.
+@export var spread_angle: float = 0.0
+
 @export_group("Projectile Settings")
 @export var projectile_scene: PackedScene
 @export var muzzle_offset: Vector2 = Vector2(32.0, 0.0)
@@ -68,6 +74,22 @@ enum AttackType {
 @export var upgrade_level: int = 0
 @export var damage_multiplier: float = 1.0
 @export var fire_rate_multiplier: float = 1.0
+## Multiplier applied to reload_time. Values below 1.0 speed up reloading.
+@export var reload_multiplier: float = 1.0
+
+@export_group("Alternate Fire")
+## Enable a secondary fire mode for this weapon.
+@export var alt_fire_enabled: bool = false
+## Attack type used when alternate fire is triggered.
+@export var alt_fire_attack_type: AttackType = AttackType.HITSCAN
+## Damage multiplier applied to base damage for alternate fire.
+@export var alt_fire_damage_multiplier: float = 1.5
+## Number of pellets fired per alternate fire shot.
+@export var alt_fire_pellet_count: int = 1
+## Total spread angle in degrees for alternate fire pellets.
+@export var alt_fire_spread_angle: float = 0.0
+## Hitscan range used for alternate fire.
+@export var alt_fire_hitscan_range: float = 1000.0
 
 ## Duration in seconds that the muzzle flash remains visible.
 const MUZZLE_FLASH_DURATION: float = 0.075
@@ -83,6 +105,7 @@ var _reload_timer: float = 0.0
 var _burst_shots_remaining: int = 0
 var _burst_cooldown: float = 0.0
 var _last_trigger_state: bool = false
+var _alt_fire_last_trigger_state: bool = false
 
 
 func _ready() -> void:
@@ -164,19 +187,72 @@ func _fire_single(direction: Vector2) -> bool:
 		current_ammo -= 1
 		ammo_changed.emit(current_ammo, max_ammo)
 
-	match attack_type:
-		AttackType.PROJECTILE:
-			_fire_projectile(direction)
-		AttackType.HITSCAN:
-			_fire_hitscan(direction)
-
+	_execute_attack(direction, attack_type, damage * damage_multiplier,
+			pellet_count, spread_angle, hitscan_range, hitscan_pierce_count)
 	_show_muzzle_flash()
 	_play_fire_audio()
 	_apply_recoil()
 	return true
 
 
-func _fire_projectile(direction: Vector2) -> void:
+## Fire the alternate fire mode. Always semi-auto (one shot per trigger press).
+## Returns true if the alternate fire was triggered.
+func try_alt_fire(direction: Vector2, trigger_held: bool) -> bool:
+	if not alt_fire_enabled:
+		return false
+	if is_reloading:
+		return false
+
+	if trigger_held and not _alt_fire_last_trigger_state:
+		_alt_fire_last_trigger_state = true
+		return _fire_alt_single(direction)
+	elif not trigger_held:
+		_alt_fire_last_trigger_state = false
+	return false
+
+
+func _fire_alt_single(direction: Vector2) -> bool:
+	if not infinite_ammo and current_ammo <= 0:
+		empty_fired.emit()
+		return false
+
+	if not infinite_ammo:
+		current_ammo -= 1
+		ammo_changed.emit(current_ammo, max_ammo)
+
+	var effective_damage := damage * damage_multiplier * alt_fire_damage_multiplier
+	_execute_attack(direction, alt_fire_attack_type, effective_damage,
+			alt_fire_pellet_count, alt_fire_spread_angle, alt_fire_hitscan_range,
+			hitscan_pierce_count)
+	_show_muzzle_flash()
+	_play_fire_audio()
+	_apply_recoil()
+	return true
+
+
+## Execute an attack with the given parameters, firing one or more pellets.
+func _execute_attack(direction: Vector2, type: AttackType, effective_damage: float,
+		pellets: int, spread: float, h_range: float, pierce: int) -> void:
+	if pellets <= 1:
+		match type:
+			AttackType.PROJECTILE:
+				_fire_projectile(direction, effective_damage)
+			AttackType.HITSCAN:
+				_fire_hitscan_at(direction, effective_damage, h_range, pierce)
+	else:
+		for i in range(pellets):
+			var angle_offset: float = 0.0
+			if pellets > 1:
+				angle_offset = lerpf(-spread * 0.5, spread * 0.5, float(i) / float(pellets - 1))
+			var spread_dir := direction.rotated(deg_to_rad(angle_offset))
+			match type:
+				AttackType.PROJECTILE:
+					_fire_projectile(spread_dir, effective_damage)
+				AttackType.HITSCAN:
+					_fire_hitscan_at(spread_dir, effective_damage, h_range, pierce)
+
+
+func _fire_projectile(direction: Vector2, effective_damage: float) -> void:
 	if projectile_scene == null:
 		push_warning("BaseWeapon: projectile_scene is not assigned.")
 		return
@@ -188,7 +264,7 @@ func _fire_projectile(direction: Vector2) -> void:
 
 	projectile.global_position = global_position + muzzle_offset.rotated(global_rotation)
 	projectile.direction = direction
-	projectile.damage = damage * damage_multiplier
+	projectile.damage = effective_damage
 	projectile.source_body = get_parent() as Node2D
 
 	var level: Node = get_tree().current_scene
@@ -196,16 +272,16 @@ func _fire_projectile(direction: Vector2) -> void:
 		level.add_child(projectile)
 
 
-func _fire_hitscan(direction: Vector2) -> void:
+func _fire_hitscan_at(direction: Vector2, effective_damage: float, range: float, pierce: int) -> void:
 	var space_state := get_world_2d().direct_space_state
 	var start_pos := global_position + muzzle_offset.rotated(global_rotation)
-	var end_pos := start_pos + direction * hitscan_range
+	var end_pos := start_pos + direction * range
 	var source := get_parent() as Node2D
 
 	var hits: int = 0
 	var current_start := start_pos
 
-	while hits <= hitscan_pierce_count:
+	while hits <= pierce:
 		var query := PhysicsRayQueryParameters2D.create(current_start, end_pos)
 		query.exclude = [source] if source != null else []
 		query.collide_with_areas = true
@@ -222,7 +298,7 @@ func _fire_hitscan(direction: Vector2) -> void:
 		if collider is Node:
 			var health: HealthComponent = collider.get_node_or_null("HealthComponent") as HealthComponent
 			if health != null:
-				health.take_damage(damage * damage_multiplier)
+				health.take_damage(effective_damage)
 				AudioManager.play_sfx("impact_body", hit_pos)
 			else:
 				AudioManager.play_sfx("impact_wall", hit_pos)
@@ -231,7 +307,7 @@ func _fire_hitscan(direction: Vector2) -> void:
 		_spawn_impact_at(hit_pos)
 
 		hits += 1
-		if hits > hitscan_pierce_count:
+		if hits > pierce:
 			break
 
 		# Continue ray from slightly past the hit point
@@ -269,7 +345,7 @@ func reload() -> void:
 		return
 
 	is_reloading = true
-	_reload_timer = reload_time
+	_reload_timer = get_effective_reload_time()
 	reload_started.emit()
 
 
@@ -285,12 +361,18 @@ func get_effective_fire_rate() -> float:
 	return fire_rate * fire_rate_multiplier
 
 
+## Get the actual reload time accounting for upgrades.
+func get_effective_reload_time() -> float:
+	return reload_time * reload_multiplier
+
+
 ## Apply an upgrade to the weapon.
 func apply_upgrade(level_increase: int = 1) -> void:
 	upgrade_level += level_increase
-	# Upgrades increase damage and fire rate by 10% per level
+	# Each level increases damage by 10%, improves fire rate by 5%, and speeds up reload by 5%
 	damage_multiplier = 1.0 + (upgrade_level * 0.1)
 	fire_rate_multiplier = maxf(0.5, 1.0 - (upgrade_level * 0.05))
+	reload_multiplier = maxf(0.5, 1.0 - (upgrade_level * 0.05))
 
 
 ## Check if the weapon can fire (has ammo and not reloading).

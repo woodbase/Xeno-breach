@@ -31,6 +31,7 @@ signal died
 var _weapon_manager: WeaponManager = null
 var _weapon: BaseWeapon = null
 var _fire_cooldown: float = 0.0
+var _alt_fire_cooldown: float = 0.0
 var _normalized_bounds: Rect2
 var _damage_feedback_duration: float = 0.25
 var _damage_feedback_timer: SceneTreeTimer = null
@@ -66,6 +67,7 @@ func _physics_process(delta: float) -> void:
 	_handle_weapon_switching()
 	_handle_reload()
 	_handle_fire(delta)
+	_handle_alt_fire(delta)
 	move_and_slide()
 	if clamp_to_playfield:
 		global_position = global_position.clamp(_normalized_bounds.position, _normalized_bounds.end)
@@ -111,6 +113,18 @@ func _handle_fire(delta: float) -> void:
 
 	if should_fire and _fire_cooldown <= 0.0:
 		_fire(should_fire)
+
+
+func _handle_alt_fire(delta: float) -> void:
+	_alt_fire_cooldown -= delta
+	var should_alt_fire: bool
+	if device_id < 0:
+		should_alt_fire = Input.is_action_pressed("alt_fire")
+	else:
+		should_alt_fire = Input.get_joy_axis(device_id, JOY_AXIS_TRIGGER_LEFT) > 0.5
+
+	if should_alt_fire and _alt_fire_cooldown <= 0.0:
+		_alt_fire(should_alt_fire)
 
 
 func _handle_weapon_switching() -> void:
@@ -165,6 +179,24 @@ func _fire(trigger_held: bool) -> void:
 		fired.emit(direction)
 		var effective_fire_rate := _weapon.get_effective_fire_rate() if _weapon != null else 0.2
 		_fire_cooldown = effective_fire_rate
+
+
+func _alt_fire(trigger_held: bool) -> void:
+	if _weapon == null:
+		return
+
+	var direction: Vector2 = Vector2.RIGHT.rotated(rotation)
+	var did_fire: bool = false
+
+	if _weapon_manager != null:
+		did_fire = _weapon_manager.try_alt_fire(direction, trigger_held)
+	else:
+		did_fire = _weapon.try_alt_fire(direction, trigger_held)
+
+	if did_fire:
+		fired.emit(direction)
+		var effective_fire_rate := _weapon.get_effective_fire_rate() if _weapon != null else 0.2
+		_alt_fire_cooldown = effective_fire_rate
 
 
 ## Delegate incoming damage to the HealthComponent.
