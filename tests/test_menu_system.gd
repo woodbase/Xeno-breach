@@ -12,6 +12,16 @@
 ##   • MainMenu can be instantiated and has required buttons.
 ##   • MainMenu start button exists and is connected.
 ##   • MainMenu quit button exists and is connected.
+##   • IntroScreen can be instantiated with required nodes.
+##   • IntroScreen story label starts empty (typewriter not yet started).
+##   • IntroScreen deploy (continue) button starts disabled.
+##   • IntroScreen skip button is enabled at start.
+##   • IntroScreen._finish_typewriter() fills story text and enables deploy button.
+##   • DemoEndScreen can be instantiated with required nodes.
+##   • DemoEndScreen score label reflects GameStateManager.final_score.
+##   • DemoEndScreen waves label reflects GameStateManager.final_waves_survived.
+##   • DemoEndScreen has a non-empty wishlist message.
+##   • DemoEndScreen has play-again and main-menu buttons.
 ##   • GameStateManager.State.PAUSED exists and is distinct from PLAYING.
 ##   • GameStateManager supports all required states.
 ##   • GameStateManager transitions work correctly.
@@ -45,6 +55,22 @@ func _run_all() -> void:
 	test_main_menu_has_start_button()
 	test_main_menu_has_quit_button()
 
+	# IntroScreen tests
+	test_intro_screen_instantiation()
+	test_intro_screen_story_label_starts_empty()
+	test_intro_screen_deploy_button_starts_disabled()
+	test_intro_screen_skip_button_starts_enabled()
+	test_intro_screen_finish_typewriter_fills_text()
+	test_intro_screen_finish_typewriter_enables_deploy()
+
+	# DemoEndScreen tests
+	test_demo_end_screen_instantiation()
+	test_demo_end_screen_score_label()
+	test_demo_end_screen_waves_label()
+	test_demo_end_screen_has_wishlist_message()
+	test_demo_end_screen_has_play_again_button()
+	test_demo_end_screen_has_main_menu_button()
+
 	# GameStateManager tests
 	test_game_state_paused_distinct_from_playing()
 	test_game_state_change_to_paused()
@@ -76,6 +102,22 @@ func _make_main_menu() -> MainMenu:
 	var mm: MainMenu = packed.instantiate() as MainMenu
 	add_child(mm)
 	return mm
+
+
+## Instantiate an IntroScreen by loading the scene.
+func _make_intro_screen() -> IntroScreen:
+	var packed: PackedScene = load("res://scenes/ui/intro_screen.tscn")
+	var screen: IntroScreen = packed.instantiate() as IntroScreen
+	add_child(screen)
+	return screen
+
+
+## Instantiate a DemoEndScreen by loading the scene.
+func _make_demo_end_screen() -> DemoEndScreen:
+	var packed: PackedScene = load("res://scenes/ui/demo_end_screen.tscn")
+	var screen: DemoEndScreen = packed.instantiate() as DemoEndScreen
+	add_child(screen)
+	return screen
 
 
 # ── Tests ─────────────────────────────────────────────────────────────────────
@@ -186,6 +228,108 @@ func test_main_menu_has_quit_button() -> void:
 	var quit_btn: Button = mm.get_node_or_null("Center/Panel/Margin/VBox/Buttons/QuitButton") as Button
 	_assert(quit_btn != null, "MainMenu has QuitButton")
 	mm.queue_free()
+
+
+# ── IntroScreen tests ─────────────────────────────────────────────────────────
+
+func test_intro_screen_instantiation() -> void:
+	var screen := _make_intro_screen()
+	_assert(screen != null, "IntroScreen can be instantiated")
+	screen.queue_free()
+
+
+func test_intro_screen_story_label_starts_empty() -> void:
+	var screen := _make_intro_screen()
+	var label: Label = screen.get_node_or_null("Center/Panel/Margin/VBox/StoryLabel") as Label
+	_assert(label != null, "IntroScreen has StoryLabel node")
+	_assert(label.text == "", "IntroScreen StoryLabel starts empty")
+	screen.queue_free()
+
+
+func test_intro_screen_deploy_button_starts_disabled() -> void:
+	var screen := _make_intro_screen()
+	var btn: Button = screen.get_node_or_null("Center/Panel/Margin/VBox/Buttons/ContinueButton") as Button
+	_assert(btn != null, "IntroScreen has ContinueButton (DEPLOY)")
+	_assert(btn.disabled, "IntroScreen DEPLOY button starts disabled until typewriter completes")
+	screen.queue_free()
+
+
+func test_intro_screen_skip_button_starts_enabled() -> void:
+	var screen := _make_intro_screen()
+	var btn: Button = screen.get_node_or_null("Center/Panel/Margin/VBox/Buttons/SkipButton") as Button
+	_assert(btn != null, "IntroScreen has SkipButton")
+	_assert(not btn.disabled, "IntroScreen SKIP button is enabled at start")
+	screen.queue_free()
+
+
+func test_intro_screen_finish_typewriter_fills_text() -> void:
+	var screen := _make_intro_screen()
+	screen._finish_typewriter()
+	var label: Label = screen.get_node_or_null("Center/Panel/Margin/VBox/StoryLabel") as Label
+	_assert(label != null and not label.text.is_empty(), "IntroScreen story label filled after _finish_typewriter()")
+	screen.queue_free()
+
+
+func test_intro_screen_finish_typewriter_enables_deploy() -> void:
+	var screen := _make_intro_screen()
+	screen._finish_typewriter()
+	var btn: Button = screen.get_node_or_null("Center/Panel/Margin/VBox/Buttons/ContinueButton") as Button
+	_assert(btn != null and not btn.disabled, "IntroScreen DEPLOY button enabled after _finish_typewriter()")
+	screen.queue_free()
+
+
+# ── DemoEndScreen tests ───────────────────────────────────────────────────────
+
+func test_demo_end_screen_instantiation() -> void:
+	var screen := _make_demo_end_screen()
+	_assert(screen != null, "DemoEndScreen can be instantiated")
+	screen.queue_free()
+
+
+func test_demo_end_screen_score_label() -> void:
+	var prev_score: int = GameStateManager.final_score
+	GameStateManager.final_score = 750
+	var screen := _make_demo_end_screen()
+	var label: Label = screen.get_node_or_null("Center/Panel/Margin/VBox/StatsBox/ScoreLabel") as Label
+	_assert(label != null, "DemoEndScreen has ScoreLabel")
+	_assert(label.text.contains("750"), "DemoEndScreen ScoreLabel reflects GameStateManager.final_score")
+	screen.queue_free()
+	GameStateManager.final_score = prev_score
+
+
+func test_demo_end_screen_waves_label() -> void:
+	var prev_waves: int = GameStateManager.final_waves_survived
+	GameStateManager.final_waves_survived = 4
+	var screen := _make_demo_end_screen()
+	var label: Label = screen.get_node_or_null("Center/Panel/Margin/VBox/StatsBox/WavesLabel") as Label
+	_assert(label != null, "DemoEndScreen has WavesLabel")
+	_assert(label.text.contains("4"), "DemoEndScreen WavesLabel reflects GameStateManager.final_waves_survived")
+	screen.queue_free()
+	GameStateManager.final_waves_survived = prev_waves
+
+
+func test_demo_end_screen_has_wishlist_message() -> void:
+	var screen := _make_demo_end_screen()
+	var wishlist_text: Label = screen.get_node_or_null(
+		"Center/Panel/Margin/VBox/WishlistBox/WishlistMargin/WishlistVBox/WishlistText"
+	) as Label
+	_assert(wishlist_text != null, "DemoEndScreen has WishlistText label")
+	_assert(not wishlist_text.text.is_empty(), "DemoEndScreen WishlistText is non-empty")
+	screen.queue_free()
+
+
+func test_demo_end_screen_has_play_again_button() -> void:
+	var screen := _make_demo_end_screen()
+	var btn: Button = screen.get_node_or_null("Center/Panel/Margin/VBox/Buttons/PlayAgainButton") as Button
+	_assert(btn != null, "DemoEndScreen has PlayAgainButton")
+	screen.queue_free()
+
+
+func test_demo_end_screen_has_main_menu_button() -> void:
+	var screen := _make_demo_end_screen()
+	var btn: Button = screen.get_node_or_null("Center/Panel/Margin/VBox/Buttons/MainMenuButton") as Button
+	_assert(btn != null, "DemoEndScreen has MainMenuButton")
+	screen.queue_free()
 
 
 func test_game_state_all_states_exist() -> void:
