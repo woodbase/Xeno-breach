@@ -224,6 +224,21 @@ func _on_enemy_killed() -> void:
 	hud.set_score(_score)
 
 
+## Interval (seconds) between player-position checks for [ReachAreaObjective] tracking.
+const _POSITION_CHECK_INTERVAL: float = 0.1
+var _position_check_timer: float = 0.0
+
+
+func _process(delta: float) -> void:
+	if _run_finished or get_tree().paused:
+		return
+	_position_check_timer -= delta
+	if _position_check_timer <= 0.0:
+		_position_check_timer = _POSITION_CHECK_INTERVAL
+		if is_instance_valid(player) and not player.is_queued_for_deletion():
+			MissionManager.check_player_position(player.global_position)
+
+
 func _on_enemy_spawned(enemy: EnemyBase) -> void:
 	var health: HealthComponent = enemy.get_node_or_null("HealthComponent") as HealthComponent
 	if health != null:

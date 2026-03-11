@@ -7,6 +7,9 @@ class_name EnemyData
 extends Resource
 
 @export var enemy_name: String = "Drone"
+## Programmatic type identifier used by [KillEnemyObjective] (e.g., "xeno_crawler").
+## Must match the string passed to [method MissionManager.report_enemy_killed].
+@export var enemy_type: String = ""
 @export var max_health: float = 50.0
 @export var move_speed: float = 120.0
 @export var detection_range: float = 300.0
