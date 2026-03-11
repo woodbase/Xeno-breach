@@ -241,9 +241,7 @@ func _execute_attack(direction: Vector2, type: AttackType, effective_damage: flo
 				_fire_hitscan_at(direction, effective_damage, h_range, pierce)
 	else:
 		for i in range(pellets):
-			var angle_offset: float = 0.0
-			if pellets > 1:
-				angle_offset = lerpf(-spread * 0.5, spread * 0.5, float(i) / float(pellets - 1))
+			var angle_offset: float = lerpf(-spread * 0.5, spread * 0.5, float(i) / float(pellets - 1))
 			var spread_dir := direction.rotated(deg_to_rad(angle_offset))
 			match type:
 				AttackType.PROJECTILE:

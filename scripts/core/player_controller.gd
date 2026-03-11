@@ -31,7 +31,6 @@ signal died
 var _weapon_manager: WeaponManager = null
 var _weapon: BaseWeapon = null
 var _fire_cooldown: float = 0.0
-var _alt_fire_cooldown: float = 0.0
 var _normalized_bounds: Rect2
 var _damage_feedback_duration: float = 0.25
 var _damage_feedback_timer: SceneTreeTimer = null
@@ -115,15 +114,14 @@ func _handle_fire(delta: float) -> void:
 		_fire(should_fire)
 
 
-func _handle_alt_fire(delta: float) -> void:
-	_alt_fire_cooldown -= delta
+func _handle_alt_fire(_delta: float) -> void:
 	var should_alt_fire: bool
 	if device_id < 0:
 		should_alt_fire = Input.is_action_pressed("alt_fire")
 	else:
 		should_alt_fire = Input.get_joy_axis(device_id, JOY_AXIS_TRIGGER_LEFT) > 0.5
 
-	if should_alt_fire and _alt_fire_cooldown <= 0.0:
+	if should_alt_fire:
 		_alt_fire(should_alt_fire)
 
 
@@ -195,8 +193,6 @@ func _alt_fire(trigger_held: bool) -> void:
 
 	if did_fire:
 		fired.emit(direction)
-		var effective_fire_rate := _weapon.get_effective_fire_rate() if _weapon != null else 0.2
-		_alt_fire_cooldown = effective_fire_rate
 
 
 ## Delegate incoming damage to the HealthComponent.
