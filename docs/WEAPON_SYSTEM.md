@@ -7,8 +7,10 @@ The modular weapon system provides a complete framework for implementing diverse
 - **Reload system** (reload time, reload state)
 - **Multiple attack types** (projectile-based and hitscan/raycast)
 - **Firing modes** (automatic, semi-automatic, burst)
+- **Multi-pellet spread** (shotgun-style spread attacks)
+- **Alternate fire** (secondary fire mode per weapon)
 - **Weapon switching** (inventory management via WeaponManager)
-- **Upgrade system** (damage and fire rate multipliers)
+- **Upgrade system** (damage, fire rate, and reload speed multipliers)
 - **Impact effects** (visual and audio feedback)
 
 ## Architecture
@@ -25,17 +27,27 @@ The main weapon class that handles all weapon logic. Extends `Node2D` for 2D pos
 - `firing_mode` - AUTO, SEMI_AUTO, or BURST
 - `damage` - Base damage per hit
 - `attack_type` - PROJECTILE or HITSCAN
+- `pellet_count` - Number of pellets fired per shot (1 = single, >1 = spread)
+- `spread_angle` - Total spread angle in degrees for multi-pellet shots
 - `max_ammo` - Maximum ammunition capacity
 - `current_ammo` - Current ammunition count
 - `reload_time` - Time to complete reload (seconds)
 - `infinite_ammo` - If true, never runs out of ammo
+- `alt_fire_enabled` - Enable alternate fire mode
+- `alt_fire_attack_type` - Attack type for alternate fire
+- `alt_fire_damage_multiplier` - Damage multiplier for alternate fire
+- `alt_fire_pellet_count` - Pellets fired per alternate fire shot
+- `alt_fire_spread_angle` - Spread angle for alternate fire pellets
+- `alt_fire_hitscan_range` - Hitscan range for alternate fire
 
 **Key Methods:**
 - `try_fire(direction: Vector2, trigger_held: bool) -> bool` - Attempt to fire weapon
+- `try_alt_fire(direction: Vector2, trigger_held: bool) -> bool` - Attempt alternate fire
 - `reload()` - Start reloading the weapon
 - `apply_upgrade(level_increase: int)` - Apply upgrade level
 - `can_fire() -> bool` - Check if weapon can currently fire
 - `get_effective_fire_rate() -> float` - Get fire rate with upgrades
+- `get_effective_reload_time() -> float` - Get reload time with upgrades
 
 **Signals:**
 - `ammo_changed(current: int, max: int)` - Emitted when ammo count changes
@@ -75,6 +87,7 @@ Manages weapon inventory and switching. Add as a child to the player, then add B
 - `add_weapon(weapon: BaseWeapon)` - Add weapon to inventory
 - `reload()` - Reload active weapon
 - `try_fire(direction: Vector2, trigger_held: bool) -> bool` - Fire active weapon
+- `try_alt_fire(direction: Vector2, trigger_held: bool) -> bool` - Alternate fire active weapon
 
 **Signals:**
 - `weapon_changed(weapon: BaseWeapon)` - Emitted when active weapon changes
@@ -176,6 +189,51 @@ print("Fire rate multiplier: %.2f" % weapon.fire_rate_multiplier)
 **Upgrade Effects:**
 - Each level increases damage by 10%
 - Each level increases fire rate by 5% (faster shooting, max 50% improvement)
+- Each level speeds up reload by 5% (faster reloading, max 50% improvement)
+
+## Multi-Pellet Spread
+
+Weapons can fire multiple projectiles or hitscan rays simultaneously in a spread pattern, ideal for shotgun-style weapons.
+
+```gdscript
+# Configure spread
+weapon.pellet_count = 8    # Fire 8 pellets at once
+weapon.spread_angle = 30.0 # Distribute across a 30-degree cone
+weapon.attack_type = BaseWeapon.AttackType.HITSCAN
+
+# Pellets share the same ammo: one trigger pull = one ammo consumed
+```
+
+**Notes:**
+- `pellet_count = 1` (default) behaves identically to a single-shot weapon
+- Each pellet deals the weapon's full damage independently
+- Works with both PROJECTILE and HITSCAN attack types
+
+## Alternate Fire
+
+Weapons can have a secondary fire mode activated with the `alt_fire` input (right mouse button).
+
+```gdscript
+# Enable alternate fire
+weapon.alt_fire_enabled = true
+
+# Configure alternate fire
+weapon.alt_fire_attack_type = BaseWeapon.AttackType.HITSCAN  # or PROJECTILE
+weapon.alt_fire_damage_multiplier = 2.5  # 2.5x base damage
+weapon.alt_fire_pellet_count = 1         # Single slug
+weapon.alt_fire_spread_angle = 0.0       # No spread
+weapon.alt_fire_hitscan_range = 1200.0   # Extended range
+
+# Trigger alternate fire
+weapon.try_alt_fire(direction, trigger_held)
+```
+
+**Alternate Fire Behaviour:**
+- Always **semi-auto**: fires once per trigger press regardless of primary firing mode
+- Uses the same ammo pool as primary fire
+- Shares the weapon's `damage_multiplier` from upgrades (stacked with `alt_fire_damage_multiplier`)
+- Blocked while reloading
+- Emits `empty_fired` signal when triggered with no ammo
 
 ## Player Integration
 
@@ -210,14 +268,15 @@ weapon_path = NodePath("WeaponManager")
 
 The weapon system uses these input actions (defined in project.godot):
 
-- `fire` - Fire weapon (Mouse Button 1)
+- `fire` - Fire weapon (Mouse Button 1 / Left Click)
+- `alt_fire` - Alternate fire (Mouse Button 2 / Right Click)
 - `reload` - Reload weapon (R key)
 - `weapon_next` - Next weapon (Mouse Wheel Up)
 - `weapon_prev` - Previous weapon (Mouse Wheel Down)
 
 ## Demo Weapons
 
-Three demo weapons are provided as examples:
+Six demo weapons are provided as examples:
 
 ### 1. Assault Rifle
 **File:** `resources/weapons/assault_rifle_data.tres`
@@ -247,12 +306,43 @@ Three demo weapons are provided as examples:
 - Slow fire rate (0.8s)
 - Pierces through 2 targets
 
+### 4. Combat Shotgun
+**File:** `resources/weapons/shotgun_data.tres`
+**Scene:** `scenes/weapons/shotgun.tscn`
+
+- Semi-automatic fire
+- **Hitscan spread** (8 pellets, 30° cone)
+- 8 shell magazine
+- 8 damage per pellet (64 total at full spread)
+- Short range (500 units)
+- **Alt fire:** Single high-damage slug (3× damage, 1200 range)
+
+### 5. Arc SMG
+**File:** `resources/weapons/smg_data.tres`
+**Scene:** `scenes/weapons/smg.tscn`
+
+- Fully automatic fire
+- Projectile-based
+- 40 round magazine
+- Low damage (6) with very fast fire rate (0.07s)
+
+### 6. Plasma Launcher
+**File:** `resources/weapons/plasma_launcher_data.tres`
+**Scene:** `scenes/weapons/plasma_launcher.tscn`
+
+- Semi-automatic fire
+- Projectile-based (primary)
+- 6 round magazine
+- High damage (35), slow fire rate (0.9s)
+- **Alt fire:** Charged hitscan burst (2.5× damage, 1500 range)
+
 ## Testing
 
 Comprehensive test suites are provided:
 
-- `tests/test_weapon_system.gd` - Tests BaseWeapon functionality
+- `tests/test_weapon_system.gd` - Tests BaseWeapon functionality (ammo, reload, firing modes, upgrades)
 - `tests/test_weapon_manager.gd` - Tests WeaponManager inventory system
+- `tests/test_weapons_expansion.gd` - Tests spread, alternate fire, reload multiplier, new weapons
 
 Run tests using Godot's GUT (Godot Unit Test) framework.
 
@@ -270,19 +360,27 @@ Run tests using Godot's GUT (Godot Unit Test) framework.
 ```gdscript
 # Create weapon node
 var new_weapon := BaseWeapon.new()
-new_weapon.name = "Shotgun"
+new_weapon.name = "Combat Shotgun"
 
 # Configure stats
 new_weapon.firing_mode = BaseWeapon.FiringMode.SEMI_AUTO
 new_weapon.attack_type = BaseWeapon.AttackType.HITSCAN
-new_weapon.damage = 35.0
-new_weapon.fire_rate = 0.6
+new_weapon.damage = 8.0
+new_weapon.fire_rate = 0.7
 new_weapon.max_ammo = 8
 new_weapon.reload_time = 2.5
 
-# Hitscan settings for shotgun spread (single ray for now)
+# Shotgun spread: 8 pellets over 30 degrees
+new_weapon.pellet_count = 8
+new_weapon.spread_angle = 30.0
 new_weapon.hitscan_range = 500.0
-new_weapon.hitscan_pierce_count = 0
+
+# Alternate fire: single high-damage slug
+new_weapon.alt_fire_enabled = true
+new_weapon.alt_fire_attack_type = BaseWeapon.AttackType.HITSCAN
+new_weapon.alt_fire_damage_multiplier = 3.0
+new_weapon.alt_fire_pellet_count = 1
+new_weapon.alt_fire_hitscan_range = 1200.0
 
 # Add to weapon manager
 weapon_manager.add_weapon(new_weapon)
@@ -292,11 +390,9 @@ weapon_manager.add_weapon(new_weapon)
 
 Potential additions to the weapon system:
 
-- Weapon spread/accuracy system
-- Alternate fire modes
 - Weapon attachments/modifications
 - Ammunition types
 - Weapon durability/overheating
 - Dual wielding support
-- Multiple projectiles per shot (shotgun spread)
-- Charged shots
+- Charged shots with hold-to-charge mechanic
+- Weapon-specific passive traits

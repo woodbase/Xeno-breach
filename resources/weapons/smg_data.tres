@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3 uid="uid://cm6pn3x7q1wvb"]
+
+[ext_resource type="Script" path="res://scripts/data/weapon_data.gd" id="1_smg"]
+[ext_resource type="PackedScene" uid="uid://d2wrs5vy5cqsm" path="res://scenes/weapons/projectile.tscn" id="2_projectile"]
+
+[resource]
+script = ExtResource("1_smg")
+weapon_name = "Arc SMG"
+weapon_description = "Compact submachine gun with a blistering rate of fire."
+fire_rate = 0.07
+firing_mode = 0
+burst_count = 3
+burst_delay = 0.05
+damage = 6.0
+attack_type = 0
+pellet_count = 1
+spread_angle = 0.0
+projectile_scene = ExtResource("2_projectile")
+muzzle_offset = Vector2(26, 0)
+hitscan_range = 1000.0
+hitscan_pierce_count = 0
+max_ammo = 40
+infinite_ammo = false
+reload_time = 1.8
+recoil_amount = 3.0
+recoil_recovery_speed = 180.0
+alt_fire_enabled = false
+alt_fire_attack_type = 1
+alt_fire_damage_multiplier = 1.5
+alt_fire_pellet_count = 1
+alt_fire_spread_angle = 0.0
+alt_fire_hitscan_range = 1000.0
