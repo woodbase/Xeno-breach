@@ -159,10 +159,10 @@ Story Points: 5
 Tasks:
 
 - [x] Level scene structure
-- [ ] Modular room layout
+- [x] Modular room layout
 - [x] Enemy spawn system
 - [x] Environmental collisions
-- [ ] Navigation zones
+- [x] Navigation zones
 
 ---
 
@@ -206,10 +206,10 @@ Story Points: 5
 HUD elements:
 
 - [x] Player health
-- [ ] Ammo
-- [ ] Current weapon
-- [ ] Crosshair
-- [ ] Damage indicator
+- [x] Ammo
+- [x] Current weapon
+- [x] Crosshair
+- [x] Damage indicator
 
 ---
 
@@ -240,10 +240,10 @@ Story Points: 8
 
 Tasks:
 
-- [ ] Mission manager system
-- [ ] Objective structure
-- [ ] Event triggers
-- [ ] Mission completion tracking
+- [x] Mission manager system
+- [x] Objective structure
+- [x] Event triggers
+- [x] Mission completion tracking
 
 Examples of future missions:
 
@@ -268,10 +268,10 @@ Story Points: 5
 
 Tasks:
 
-- [ ] Basic lighting
-- [ ] Environment textures
-- [ ] Weapon model polish
-- [ ] Enemy model polish
+- [x] Basic lighting
+- [x] Environment textures
+- [x] Weapon model polish
+- [x] Enemy model polish
 
 ---
 
@@ -281,9 +281,9 @@ Story Points: 3
 
 Tasks:
 
-- [ ] FPS stability
-- [ ] Collision optimization
-- [ ] Enemy logic optimization
+- [x] FPS stability
+- [x] Collision optimization
+- [x] Enemy logic optimization
 
 ---
 
